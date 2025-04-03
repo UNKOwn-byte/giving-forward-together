@@ -6,7 +6,12 @@ import Home from './Home';
 const Index = () => {
   const navigate = useNavigate();
 
-  // Simply render the Home component directly
+  useEffect(() => {
+    // Redirect to home page
+    navigate('/');
+  }, [navigate]);
+
+  // Simply render the Home component directly while redirecting
   return <Home />;
 };
 

@@ -6,7 +6,6 @@ import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { generateUPIPaymentURL } from '@/utils/donationUtils';
 import { useAuth } from '@/context/AuthContext';
-import { DonationFormData } from '@/types';
 
 interface UpiPaymentProps {
   amount: number;
@@ -91,6 +90,7 @@ const UpiPayment: React.FC<UpiPaymentProps> = ({
             onClick={handleUpiPayment} 
             className="w-full bg-brand-500 hover:bg-brand-600"
             size="lg"
+            type="button"
           >
             Pay with UPI
           </Button>
@@ -116,6 +116,7 @@ const UpiPayment: React.FC<UpiPaymentProps> = ({
               onClick={handleVerifyPayment} 
               disabled={isVerifying}
               className="w-full"
+              type="button"
             >
               {isVerifying ? 'Verifying...' : 'Verify Payment'}
             </Button>

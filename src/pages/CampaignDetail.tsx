@@ -97,6 +97,7 @@ const CampaignDetail: React.FC = () => {
                   onClick={handleDonateClick} 
                   className="w-full bg-brand-500 hover:bg-brand-600 mb-4"
                   size="lg"
+                  type="button"
                 >
                   Donate Now
                 </Button>
@@ -156,6 +157,7 @@ const CampaignDetail: React.FC = () => {
             <Button 
               onClick={handleDonateClick}
               className="mt-6 bg-brand-500 hover:bg-brand-600"
+              type="button"
             >
               Make a Donation
             </Button>
