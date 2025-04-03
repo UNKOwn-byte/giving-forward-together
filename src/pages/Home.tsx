@@ -4,10 +4,12 @@ import { Link } from 'react-router-dom';
 import Layout from '../components/layout/Layout';
 import CampaignCard from '../components/campaigns/CampaignCard';
 import { useData } from '../context/DataContext';
+import { useAuth } from '../context/AuthContext';
 import { Button } from '@/components/ui/button';
 
 const Home: React.FC = () => {
   const { featuredCampaigns, campaigns } = useData();
+  const { user, isAuthenticated } = useAuth();
   
   return (
     <Layout>
@@ -16,9 +18,15 @@ const Home: React.FC = () => {
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row items-center">
             <div className="md:w-1/2 mb-10 md:mb-0">
-              <h1 className="text-4xl md:text-5xl font-bold mb-6 hero-text-gradient">
-                Make a Difference with Your Donation
-              </h1>
+              {isAuthenticated && user ? (
+                <h1 className="text-4xl md:text-5xl font-bold mb-6 hero-text-gradient">
+                  Welcome back, {user.name}!
+                </h1>
+              ) : (
+                <h1 className="text-4xl md:text-5xl font-bold mb-6 hero-text-gradient">
+                  Make a Difference with Your Donation
+                </h1>
+              )}
               <p className="text-lg md:text-xl text-gray-700 mb-8">
                 Support meaningful causes and help those in need. Your contribution, no matter how small, 
                 can create a significant impact on someone's life.

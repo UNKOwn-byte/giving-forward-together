@@ -44,3 +44,4 @@ export interface DonationFormData {
   message?: string;
   anonymous: boolean;
 }
+
