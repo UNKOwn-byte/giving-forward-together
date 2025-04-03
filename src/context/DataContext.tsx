@@ -14,6 +14,10 @@ interface DataContextType {
   addDonation: (donation: Omit<Donation, 'id' | 'createdAt'>) => Promise<Donation>;
   updateDonationStatus: (id: string, status: Donation['status'], transactionId?: string) => Promise<void>;
   verifyTransaction: (transactionId: string) => Promise<boolean>;
+  addCampaign: (campaign: Omit<Campaign, 'id' | 'createdAt' | 'raised'>) => Promise<Campaign>;
+  updateCampaign: (id: string, updates: Partial<Omit<Campaign, 'id' | 'createdAt' | 'raised'>>) => Promise<Campaign>;
+  deleteCampaign: (id: string) => Promise<void>;
+  getUserCampaigns: (organizerId: string) => Campaign[];
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -33,6 +37,11 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Get donations for a specific campaign
   const getCampaignDonations = (campaignId: string) => {
     return donationData.filter(donation => donation.campaignId === campaignId);
+  };
+
+  // Get campaigns created by a specific user
+  const getUserCampaigns = (organizerId: string) => {
+    return campaignData.filter(campaign => campaign.organizer === organizerId);
   };
 
   // Verify a transaction by its ID
@@ -77,6 +86,55 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
     
     return newDonation;
+  };
+
+  // Add a new campaign
+  const addCampaign = async (campaignInput: Omit<Campaign, 'id' | 'createdAt' | 'raised'>) => {
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    const newCampaign: Campaign = {
+      ...campaignInput,
+      id: Math.random().toString(36).substring(2, 9),
+      createdAt: new Date().toISOString(),
+      raised: 0,
+    };
+    
+    setCampaignData(prev => [...prev, newCampaign]);
+    return newCampaign;
+  };
+
+  // Update an existing campaign
+  const updateCampaign = async (id: string, updates: Partial<Omit<Campaign, 'id' | 'createdAt' | 'raised'>>) => {
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    let updatedCampaign: Campaign | undefined;
+    
+    setCampaignData(prev => {
+      const updated = prev.map(campaign => {
+        if (campaign.id === id) {
+          updatedCampaign = { ...campaign, ...updates };
+          return updatedCampaign;
+        }
+        return campaign;
+      });
+      return updated;
+    });
+    
+    if (!updatedCampaign) {
+      throw new Error('Campaign not found');
+    }
+    
+    return updatedCampaign;
+  };
+
+  // Delete a campaign
+  const deleteCampaign = async (id: string) => {
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    setCampaignData(prev => prev.filter(campaign => campaign.id !== id));
   };
 
   // Update donation status
@@ -131,6 +189,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         addDonation,
         updateDonationStatus,
         verifyTransaction,
+        addCampaign,
+        updateCampaign,
+        deleteCampaign,
+        getUserCampaigns,
       }}
     >
       {children}

@@ -1,193 +1,206 @@
 
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React from 'react';
+import { useParams, Link } from 'react-router-dom';
 import Layout from '../components/layout/Layout';
+import DonationForm from '../components/donation/DonationForm';
 import { useData } from '../context/DataContext';
-import { formatCurrency, calculateProgress, formatDate } from '../utils/donationUtils';
+import { useAuth } from '../context/AuthContext';
+import { formatCurrency, formatDate, calculateDaysLeft } from '../utils/donationUtils';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useToast } from '@/hooks/use-toast';
-import DonationForm from '@/components/donation/DonationForm';
+import SocialShare from '../components/campaigns/SocialShare';
+import { Edit } from 'lucide-react';
 
-const CampaignDetail: React.FC = () => {
+const CampaignDetail = () => {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
   const { getCampaign, getCampaignDonations } = useData();
-  const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState('about');
-  const [showDonationForm, setShowDonationForm] = useState(false);
+  const { user } = useAuth();
   
-  // Fetch campaign data
-  const campaign = getCampaign(id || '');
-  const donations = getCampaignDonations(id || '');
+  if (!id) return <div>Campaign not found</div>;
   
-  useEffect(() => {
-    if (!campaign) {
-      toast({
-        title: "Campaign Not Found",
-        description: "The campaign you're looking for doesn't exist.",
-        variant: "destructive"
-      });
-      navigate('/campaigns');
-    }
-  }, [campaign, navigate, toast]);
+  const campaign = getCampaign(id);
+  const donations = getCampaignDonations(id);
+  const confirmedDonations = donations.filter(d => d.status === 'confirmed');
   
   if (!campaign) {
-    return null;
+    return (
+      <Layout>
+        <div className="container mx-auto px-4 py-16 text-center">
+          <h1 className="text-3xl font-bold mb-4">Campaign Not Found</h1>
+          <p className="mb-8">The campaign you're looking for doesn't exist or has been removed.</p>
+          <Button asChild>
+            <Link to="/campaigns">Browse Campaigns</Link>
+          </Button>
+        </div>
+      </Layout>
+    );
   }
   
   const progress = calculateProgress(campaign.raised, campaign.goal);
-  const recentDonations = donations
-    .filter(donation => donation.status === 'confirmed')
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-    .slice(0, 5);
   
-  const handleDonateClick = () => {
-    setShowDonationForm(true);
-  };
+  // Calculate days left if there's an end date
+  const daysLeft = campaign.endDate ? calculateDaysLeft(campaign.endDate) : null;
   
-  const handleDonationComplete = () => {
-    setShowDonationForm(false);
-    setActiveTab('donations');
-  };
+  // Check if the current user is the campaign organizer or an admin
+  const isOwnerOrAdmin = user && (user.id === campaign.organizer || user.role === 'admin');
+  
+  // Get current URL for sharing
+  const currentUrl = window.location.href;
   
   return (
     <Layout>
       <div className="container mx-auto px-4 py-8">
-        {/* Campaign Header */}
-        <div className="flex flex-col md:flex-row gap-8 mb-10">
-          <div className="md:w-2/3">
-            <img 
-              src={campaign.image} 
-              alt={campaign.title} 
-              className="w-full h-[400px] object-cover rounded-lg shadow-md mb-6"
-            />
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* Campaign Details */}
+          <div className="lg:w-2/3">
+            <div className="flex justify-between items-start mb-4">
+              <h1 className="text-3xl font-bold">{campaign.title}</h1>
+              <div className="flex space-x-2">
+                <SocialShare 
+                  url={currentUrl}
+                  title={campaign.title}
+                  description={campaign.shortDescription}
+                />
+                
+                {isOwnerOrAdmin && (
+                  <Button variant="outline" asChild>
+                    <Link to={`/edit-campaign/${campaign.id}`} className="flex items-center gap-2">
+                      <Edit size={16} />
+                      Edit
+                    </Link>
+                  </Button>
+                )}
+              </div>
+            </div>
             
-            <h1 className="text-3xl font-bold mb-3">{campaign.title}</h1>
+            <div className="relative h-96 rounded-lg overflow-hidden mb-6">
+              <img 
+                src={campaign.image}
+                alt={campaign.title}
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute bottom-4 left-4 bg-white px-3 py-1 rounded-full text-sm font-medium">
+                {campaign.category}
+              </div>
+            </div>
             
-            <div className="flex items-center text-gray-600 mb-6">
-              <span className="mr-4">Organized by: {campaign.organizer}</span>
-              <span>Created: {formatDate(campaign.createdAt)}</span>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <div className="text-gray-600 text-sm mb-1">Raised</div>
+                <div className="text-2xl font-bold">{formatCurrency(campaign.raised)}</div>
+                <div className="text-sm text-gray-500">of {formatCurrency(campaign.goal)} goal</div>
+              </div>
+              
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <div className="text-gray-600 text-sm mb-1">Supporters</div>
+                <div className="text-2xl font-bold">{confirmedDonations.length}</div>
+                <div className="text-sm text-gray-500">
+                  {confirmedDonations.length === 1 ? 'person has donated' : 'people have donated'}
+                </div>
+              </div>
+              
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <div className="text-gray-600 text-sm mb-1">
+                  {daysLeft !== null ? 'Time Left' : 'Status'}
+                </div>
+                <div className="text-2xl font-bold">
+                  {daysLeft !== null
+                    ? daysLeft > 0
+                      ? `${daysLeft} Days`
+                      : 'Ended'
+                    : 'Ongoing'}
+                </div>
+                <div className="text-sm text-gray-500">
+                  {campaign.endDate 
+                    ? `Ends on ${formatDate(campaign.endDate)}` 
+                    : 'No end date set'}
+                </div>
+              </div>
             </div>
             
             <div className="mb-6">
-              <div className="flex justify-between mb-2">
-                <span className="font-semibold">{formatCurrency(campaign.raised)} raised</span>
-                <span className="text-gray-600">Goal: {formatCurrency(campaign.goal)}</span>
+              <div className="flex justify-between text-sm mb-1">
+                <span>{Math.round(progress)}% Complete</span>
+                <span>{formatCurrency(campaign.raised)} raised of {formatCurrency(campaign.goal)}</span>
               </div>
-              <Progress value={progress} className="h-2 mb-1" />
-              <div className="text-sm text-gray-600">{progress.toFixed(1)}% of goal reached</div>
-            </div>
-          </div>
-          
-          <div className="md:w-1/3">
-            {showDonationForm ? (
-              <DonationForm 
-                campaignId={campaign.id} 
-                campaignTitle={campaign.title}
-                onDonationComplete={handleDonationComplete}
-              />
-            ) : (
-              <div className="bg-white rounded-lg shadow-md p-6 sticky top-24">
-                <h3 className="text-xl font-bold mb-4">Support This Campaign</h3>
-                <p className="text-gray-600 mb-6">{campaign.shortDescription}</p>
-                
-                <Button 
-                  onClick={handleDonateClick} 
-                  className="w-full bg-brand-500 hover:bg-brand-600 mb-4"
-                  size="lg"
-                  type="button"
-                >
-                  Donate Now
-                </Button>
-                
-                <div className="text-sm text-gray-500 text-center">
-                  <p>Secure payment via UPI</p>
-                  <p>100% of your donation goes to the cause</p>
-                </div>
+              <div className="w-full bg-gray-200 rounded-full h-2.5">
+                <div 
+                  className="bg-brand-500 h-2.5 rounded-full" 
+                  style={{ width: `${Math.min(progress, 100)}%` }}
+                ></div>
               </div>
-            )}
-          </div>
-        </div>
-        
-        {/* Campaign Content Tabs */}
-        <Tabs defaultValue="about" value={activeTab} onValueChange={setActiveTab} className="mb-10">
-          <TabsList className="mb-6">
-            <TabsTrigger value="about">About</TabsTrigger>
-            <TabsTrigger value="donations">Donations</TabsTrigger>
-            <TabsTrigger value="updates">Updates</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="about" className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-2xl font-bold mb-4">About This Campaign</h2>
-            <div className="prose max-w-none">
-              <p className="whitespace-pre-line">{campaign.description}</p>
             </div>
-          </TabsContent>
-          
-          <TabsContent value="donations" className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-2xl font-bold mb-4">Recent Donations</h2>
             
-            {recentDonations.length > 0 ? (
-              <div className="space-y-4">
-                {recentDonations.map(donation => (
-                  <div key={donation.id} className="border-b pb-4">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <p className="font-medium">
-                          {donation.anonymous ? 'Anonymous Donor' : donation.name}
-                        </p>
-                        <p className="text-sm text-gray-500">
-                          {formatDate(donation.createdAt)}
-                        </p>
-                        {donation.message && (
-                          <p className="mt-1 text-gray-700">{donation.message}</p>
-                        )}
-                      </div>
-                      <p className="font-semibold">{formatCurrency(donation.amount)}</p>
-                    </div>
+            <Tabs defaultValue="about">
+              <TabsList>
+                <TabsTrigger value="about">About</TabsTrigger>
+                <TabsTrigger value="donations">Donations</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="about" className="py-4">
+                <div className="prose max-w-none">
+                  <p className="text-lg font-medium mb-4">{campaign.shortDescription}</p>
+                  <div className="whitespace-pre-wrap">
+                    {campaign.description.split('\n').map((paragraph, i) => (
+                      <p key={i} className="mb-4">
+                        {paragraph}
+                      </p>
+                    ))}
                   </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-gray-500">No donations yet. Be the first to donate!</p>
-            )}
-            
-            <Button 
-              onClick={handleDonateClick}
-              className="mt-6 bg-brand-500 hover:bg-brand-600"
-              type="button"
-            >
-              Make a Donation
-            </Button>
-          </TabsContent>
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="donations" className="py-4">
+                {confirmedDonations.length > 0 ? (
+                  <div className="space-y-4">
+                    {confirmedDonations.map(donation => (
+                      <div key={donation.id} className="border-b pb-4">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <div className="font-medium">
+                              {donation.anonymous ? 'Anonymous Donor' : donation.name}
+                            </div>
+                            <div className="text-sm text-gray-500">
+                              {formatDate(donation.createdAt)}
+                            </div>
+                            {donation.message && (
+                              <div className="mt-2 text-gray-700">
+                                "{donation.message}"
+                              </div>
+                            )}
+                          </div>
+                          <div className="font-medium">
+                            {formatCurrency(donation.amount)}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <p className="text-gray-500 mb-4">No donations yet. Be the first to contribute!</p>
+                    <Button>Donate Now</Button>
+                  </div>
+                )}
+              </TabsContent>
+            </Tabs>
+          </div>
           
-          <TabsContent value="updates" className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-2xl font-bold mb-4">Campaign Updates</h2>
-            <p className="text-gray-500">No updates yet. Check back soon for updates on this campaign.</p>
-          </TabsContent>
-        </Tabs>
-        
-        {/* Similar Campaigns */}
-        <div className="mb-10">
-          <h2 className="text-2xl font-bold mb-6">Similar Campaigns</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Similar campaigns would be shown here */}
-            <div className="bg-gray-100 rounded-lg h-48 flex items-center justify-center">
-              <p className="text-gray-500">Coming soon</p>
-            </div>
-            <div className="bg-gray-100 rounded-lg h-48 flex items-center justify-center">
-              <p className="text-gray-500">Coming soon</p>
-            </div>
-            <div className="bg-gray-100 rounded-lg h-48 flex items-center justify-center">
-              <p className="text-gray-500">Coming soon</p>
+          {/* Donation Form */}
+          <div className="lg:w-1/3">
+            <div className="bg-gray-50 p-6 rounded-lg sticky top-24">
+              <h2 className="text-xl font-bold mb-4">Support This Campaign</h2>
+              <DonationForm campaignId={campaign.id} />
             </div>
           </div>
         </div>
       </div>
     </Layout>
   );
+};
+
+const calculateProgress = (raised: number, goal: number): number => {
+  return (raised / goal) * 100;
 };
 
 export default CampaignDetail;

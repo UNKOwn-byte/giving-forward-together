@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import Layout from '../components/layout/Layout';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
@@ -12,14 +12,27 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { QrCode, CheckCircle2, XCircle } from 'lucide-react';
+import { QrCode, CheckCircle2, XCircle, Edit, Trash2 } from 'lucide-react';
+import AddCampaignDialog from '../components/admin/AddCampaignDialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const AdminDashboard: React.FC = () => {
   const { user, isAuthenticated } = useAuth();
-  const { campaigns, donations, updateDonationStatus, verifyTransaction } = useData();
+  const { campaigns, donations, updateDonationStatus, verifyTransaction, deleteCampaign } = useData();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
+  const [campaignSearchTerm, setCampaignSearchTerm] = useState('');
   const [isVerifyDialogOpen, setIsVerifyDialogOpen] = useState(false);
   const [currentDonationId, setCurrentDonationId] = useState<string | null>(null);
   const [verificationTransactionId, setVerificationTransactionId] = useState('');
@@ -45,6 +58,13 @@ const AdminDashboard: React.FC = () => {
     donation.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
     donation.campaignId.toString().includes(searchTerm) ||
     (donation.transactionId && donation.transactionId.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
+  
+  // Filter campaigns based on search term
+  const filteredCampaigns = campaigns.filter(campaign => 
+    campaign.title.toLowerCase().includes(campaignSearchTerm.toLowerCase()) ||
+    campaign.category.toLowerCase().includes(campaignSearchTerm.toLowerCase()) ||
+    campaign.description.toLowerCase().includes(campaignSearchTerm.toLowerCase())
   );
   
   // Open verification dialog for a donation
@@ -96,6 +116,23 @@ const AdminDashboard: React.FC = () => {
       });
     } finally {
       setIsVerifying(false);
+    }
+  };
+
+  // Handle campaign deletion
+  const handleDeleteCampaign = async (id: string) => {
+    try {
+      await deleteCampaign(id);
+      toast({
+        title: "Campaign deleted",
+        description: "The campaign has been successfully deleted.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete campaign. Please try again.",
+        variant: "destructive",
+      });
     }
   };
   
@@ -316,9 +353,17 @@ const AdminDashboard: React.FC = () => {
           <TabsContent value="campaigns">
             <Card>
               <CardHeader>
-                <CardTitle>All Campaigns</CardTitle>
-                <div className="flex justify-end mt-4">
-                  <Button>Add New Campaign</Button>
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+                  <CardTitle>All Campaigns</CardTitle>
+                  <AddCampaignDialog />
+                </div>
+                <div className="mt-4">
+                  <Input
+                    placeholder="Search campaigns by title, category..."
+                    value={campaignSearchTerm}
+                    onChange={(e) => setCampaignSearchTerm(e.target.value)}
+                    className="max-w-md"
+                  />
                 </div>
               </CardHeader>
               <CardContent>
@@ -336,37 +381,83 @@ const AdminDashboard: React.FC = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {campaigns.map(campaign => {
-                        const progress = Math.round((campaign.raised / campaign.goal) * 100);
-                        return (
-                          <tr key={campaign.id} className="border-b hover:bg-gray-50">
-                            <td className="p-3 font-medium">{campaign.title}</td>
-                            <td className="p-3">{campaign.category}</td>
-                            <td className="p-3">{formatCurrency(campaign.goal)}</td>
-                            <td className="p-3">{formatCurrency(campaign.raised)}</td>
-                            <td className="p-3">
-                              <div className="flex items-center">
-                                <div className="w-full bg-gray-200 rounded-full h-2.5 mr-2">
-                                  <div 
-                                    className="bg-brand-500 h-2.5 rounded-full" 
-                                    style={{ width: `${progress}%` }}
-                                  ></div>
+                      {filteredCampaigns.length > 0 ? (
+                        filteredCampaigns.map(campaign => {
+                          const progress = Math.round((campaign.raised / campaign.goal) * 100);
+                          return (
+                            <tr key={campaign.id} className="border-b hover:bg-gray-50">
+                              <td className="p-3 font-medium">{campaign.title}</td>
+                              <td className="p-3">{campaign.category}</td>
+                              <td className="p-3">{formatCurrency(campaign.goal)}</td>
+                              <td className="p-3">{formatCurrency(campaign.raised)}</td>
+                              <td className="p-3">
+                                <div className="flex items-center">
+                                  <div className="w-full bg-gray-200 rounded-full h-2.5 mr-2">
+                                    <div 
+                                      className="bg-brand-500 h-2.5 rounded-full" 
+                                      style={{ width: `${progress}%` }}
+                                    ></div>
+                                  </div>
+                                  <span className="text-xs font-medium">{progress}%</span>
                                 </div>
-                                <span className="text-xs font-medium">{progress}%</span>
-                              </div>
-                            </td>
-                            <td className="p-3">{campaign.endDate ? formatDate(campaign.endDate) : 'Ongoing'}</td>
-                            <td className="p-3">
-                              <div className="flex space-x-2">
-                                <Button size="sm" variant="outline">Edit</Button>
-                                <Button size="sm" variant="outline" className="text-red-500 border-red-500 hover:bg-red-50">
-                                  Delete
-                                </Button>
-                              </div>
-                            </td>
-                          </tr>
-                        );
-                      })}
+                              </td>
+                              <td className="p-3">{campaign.endDate ? formatDate(campaign.endDate) : 'Ongoing'}</td>
+                              <td className="p-3">
+                                <div className="flex space-x-2">
+                                  <Button 
+                                    size="sm" 
+                                    variant="outline"
+                                    className="flex items-center gap-1"
+                                    asChild
+                                  >
+                                    <Link to={`/edit-campaign/${campaign.id}`}>
+                                      <Edit size={14} />
+                                      Edit
+                                    </Link>
+                                  </Button>
+                                  
+                                  <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                      <Button 
+                                        size="sm" 
+                                        variant="outline" 
+                                        className="flex items-center gap-1 text-red-500 border-red-500 hover:bg-red-50"
+                                      >
+                                        <Trash2 size={14} />
+                                        Delete
+                                      </Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                      <AlertDialogHeader>
+                                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                          This action cannot be undone. This will permanently delete the campaign
+                                          and all associated data.
+                                        </AlertDialogDescription>
+                                      </AlertDialogHeader>
+                                      <AlertDialogFooter>
+                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                        <AlertDialogAction 
+                                          onClick={() => handleDeleteCampaign(campaign.id)}
+                                          className="bg-red-500 hover:bg-red-600"
+                                        >
+                                          Delete
+                                        </AlertDialogAction>
+                                      </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                  </AlertDialog>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })
+                      ) : (
+                        <tr>
+                          <td colSpan={7} className="p-3 text-center text-gray-500">
+                            No campaigns found. Try adjusting your search or create a new campaign.
+                          </td>
+                        </tr>
+                      )}
                     </tbody>
                   </table>
                 </div>
