@@ -9,6 +9,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   register: (name: string, email: string, password: string) => Promise<void>;
+  updateProfile: (updates: Partial<User>) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -82,6 +83,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(false);
   };
 
+  const updateProfile = async (updates: Partial<User>) => {
+    // This would be a real API call in production
+    setIsLoading(true);
+    
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    if (user) {
+      const updatedUser = {
+        ...user,
+        ...updates
+      };
+      
+      setUser(updatedUser);
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+    }
+    
+    setIsLoading(false);
+  };
+
   const logout = () => {
     setUser(null);
     localStorage.removeItem('user');
@@ -95,7 +116,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isLoading,
         login,
         logout,
-        register
+        register,
+        updateProfile
       }}
     >
       {children}

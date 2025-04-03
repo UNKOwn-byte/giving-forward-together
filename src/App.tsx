@@ -16,6 +16,7 @@ import Register from "./pages/Register";
 import AdminDashboard from "./pages/AdminDashboard";
 import HowItWorks from "./pages/HowItWorks";
 import NotFound from "./pages/NotFound";
+import Profile from "./pages/Profile";
 
 const queryClient = new QueryClient();
 
@@ -35,6 +36,7 @@ const App = () => (
               <Route path="/register" element={<Register />} />
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/how-it-works" element={<HowItWorks />} />
+              <Route path="/profile" element={<Profile />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
