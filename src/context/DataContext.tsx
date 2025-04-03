@@ -13,6 +13,7 @@ interface DataContextType {
   getCampaignDonations: (campaignId: string) => Donation[];
   addDonation: (donation: Omit<Donation, 'id' | 'createdAt'>) => Promise<Donation>;
   updateDonationStatus: (id: string, status: Donation['status'], transactionId?: string) => Promise<void>;
+  verifyTransaction: (transactionId: string) => Promise<boolean>;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -34,6 +35,21 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return donationData.filter(donation => donation.campaignId === campaignId);
   };
 
+  // Verify a transaction by its ID
+  const verifyTransaction = async (transactionId: string): Promise<boolean> => {
+    // In a real app, this would verify with a payment gateway API
+    // For demo purposes, we'll simulate a verification delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Check if transaction ID already exists (to prevent duplicate submissions)
+    const existingDonation = donationData.find(
+      donation => donation.transactionId === transactionId
+    );
+    
+    // For demo purposes, all transaction IDs that don't already exist are considered valid
+    return !existingDonation;
+  };
+
   // Add a new donation
   const addDonation = async (donationInput: Omit<Donation, 'id' | 'createdAt'>) => {
     // This would be a real API call in production
@@ -49,14 +65,16 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     setDonationData(prev => [...prev, newDonation]);
     
-    // Update campaign raised amount
-    setCampaignData(prev => 
-      prev.map(campaign => 
-        campaign.id === donationInput.campaignId 
-          ? { ...campaign, raised: campaign.raised + donationInput.amount } 
-          : campaign
-      )
-    );
+    // Update campaign raised amount if donation is confirmed
+    if (donationInput.status === 'confirmed') {
+      setCampaignData(prev => 
+        prev.map(campaign => 
+          campaign.id === donationInput.campaignId 
+            ? { ...campaign, raised: campaign.raised + donationInput.amount } 
+            : campaign
+        )
+      );
+    }
     
     return newDonation;
   };
@@ -68,6 +86,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 1000));
     
+    let donation = donationData.find(d => d.id === id);
+    
+    if (!donation) return;
+    
     setDonationData(prev => 
       prev.map(donation => 
         donation.id === id 
@@ -75,6 +97,27 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           : donation
       )
     );
+    
+    // If status changed to confirmed, update the campaign raised amount
+    if (status === 'confirmed' && donation.status !== 'confirmed') {
+      setCampaignData(prev => 
+        prev.map(campaign => 
+          campaign.id === donation.campaignId 
+            ? { ...campaign, raised: campaign.raised + donation.amount } 
+            : campaign
+        )
+      );
+    }
+    // If status changed from confirmed to something else, subtract the amount
+    else if (status !== 'confirmed' && donation.status === 'confirmed') {
+      setCampaignData(prev => 
+        prev.map(campaign => 
+          campaign.id === donation.campaignId 
+            ? { ...campaign, raised: campaign.raised - donation.amount } 
+            : campaign
+        )
+      );
+    }
   };
 
   return (
@@ -87,6 +130,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         getCampaignDonations,
         addDonation,
         updateDonationStatus,
+        verifyTransaction,
       }}
     >
       {children}

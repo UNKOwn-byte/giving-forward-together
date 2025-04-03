@@ -10,12 +10,20 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { useToast } from '@/hooks/use-toast';
+import { QrCode, CheckCircle2, XCircle } from 'lucide-react';
 
 const AdminDashboard: React.FC = () => {
   const { user, isAuthenticated } = useAuth();
-  const { campaigns, donations } = useData();
+  const { campaigns, donations, updateDonationStatus, verifyTransaction } = useData();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
+  const [isVerifyDialogOpen, setIsVerifyDialogOpen] = useState(false);
+  const [currentDonationId, setCurrentDonationId] = useState<string | null>(null);
+  const [verificationTransactionId, setVerificationTransactionId] = useState('');
+  const [isVerifying, setIsVerifying] = useState(false);
   
   const confirmedDonations = donations.filter(d => d.status === 'confirmed');
   const pendingDonations = donations.filter(d => d.status === 'pending');
@@ -38,6 +46,58 @@ const AdminDashboard: React.FC = () => {
     donation.campaignId.toString().includes(searchTerm) ||
     (donation.transactionId && donation.transactionId.toLowerCase().includes(searchTerm.toLowerCase()))
   );
+  
+  // Open verification dialog for a donation
+  const handleOpenVerifyDialog = (donationId: string) => {
+    setCurrentDonationId(donationId);
+    setVerificationTransactionId('');
+    setIsVerifyDialogOpen(true);
+  };
+  
+  // Handle verification of transaction ID
+  const handleVerifyTransaction = async () => {
+    if (!currentDonationId || !verificationTransactionId.trim()) {
+      toast({
+        title: "Missing Information",
+        description: "Please enter a valid transaction ID.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setIsVerifying(true);
+    
+    try {
+      // Verify the transaction ID
+      const isValid = await verifyTransaction(verificationTransactionId);
+      
+      if (isValid) {
+        // Update donation status to confirmed
+        await updateDonationStatus(currentDonationId, 'confirmed', verificationTransactionId);
+        
+        toast({
+          title: "Verification Successful",
+          description: "The donation has been marked as confirmed.",
+        });
+        
+        setIsVerifyDialogOpen(false);
+      } else {
+        toast({
+          title: "Verification Failed",
+          description: "This transaction ID is invalid or has already been used.",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Verification Error",
+        description: "An error occurred during verification. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsVerifying(false);
+    }
+  };
   
   // Check if user is admin and redirect if not
   useEffect(() => {
@@ -161,6 +221,7 @@ const AdminDashboard: React.FC = () => {
                         <th className="p-3 border-b">Date</th>
                         <th className="p-3 border-b">Status</th>
                         <th className="p-3 border-b">Transaction ID</th>
+                        <th className="p-3 border-b">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -196,12 +257,51 @@ const AdminDashboard: React.FC = () => {
                               <td className="p-3 text-gray-600">
                                 {donation.transactionId || 'Not provided'}
                               </td>
+                              <td className="p-3">
+                                <div className="flex space-x-2">
+                                  {donation.status === 'pending' && (
+                                    <Button 
+                                      size="sm" 
+                                      variant="outline" 
+                                      className="flex items-center gap-1"
+                                      onClick={() => handleOpenVerifyDialog(donation.id)}
+                                    >
+                                      <QrCode size={14} />
+                                      Verify
+                                    </Button>
+                                  )}
+                                  
+                                  {donation.status !== 'confirmed' && (
+                                    <Button 
+                                      size="sm" 
+                                      variant="outline" 
+                                      className="flex items-center gap-1 text-green-600 border-green-600 hover:bg-green-50"
+                                      onClick={() => updateDonationStatus(donation.id, 'confirmed')}
+                                    >
+                                      <CheckCircle2 size={14} />
+                                      Approve
+                                    </Button>
+                                  )}
+                                  
+                                  {donation.status !== 'failed' && (
+                                    <Button 
+                                      size="sm" 
+                                      variant="outline" 
+                                      className="flex items-center gap-1 text-red-600 border-red-600 hover:bg-red-50"
+                                      onClick={() => updateDonationStatus(donation.id, 'failed')}
+                                    >
+                                      <XCircle size={14} />
+                                      Reject
+                                    </Button>
+                                  )}
+                                </div>
+                              </td>
                             </tr>
                           );
                         })
                       ) : (
                         <tr>
-                          <td colSpan={6} className="p-3 text-center text-gray-500">
+                          <td colSpan={7} className="p-3 text-center text-gray-500">
                             No donations found.
                           </td>
                         </tr>
@@ -275,6 +375,61 @@ const AdminDashboard: React.FC = () => {
           </TabsContent>
         </Tabs>
       </div>
+      
+      {/* Transaction Verification Dialog */}
+      <Dialog open={isVerifyDialogOpen} onOpenChange={setIsVerifyDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Verify Transaction</DialogTitle>
+            <DialogDescription>
+              Enter the UPI transaction ID to verify the payment.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="flex flex-col gap-4 py-4">
+            <div className="grid gap-2">
+              <label htmlFor="transactionId" className="text-sm font-medium">
+                Transaction ID
+              </label>
+              <Input
+                id="transactionId"
+                value={verificationTransactionId}
+                onChange={(e) => setVerificationTransactionId(e.target.value)}
+                placeholder="Enter UPI transaction ID"
+                className="col-span-3"
+              />
+              <p className="text-xs text-gray-500">
+                Verify the transaction ID from the donor's UPI app or scan the QR code.
+              </p>
+            </div>
+            
+            <div className="flex justify-center">
+              <QrCode size={80} className="text-gray-400" />
+            </div>
+            
+            <p className="text-center text-sm text-gray-500">
+              You can also scan this QR code to verify the payment
+            </p>
+          </div>
+          
+          <DialogFooter className="sm:justify-between">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsVerifyDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              onClick={handleVerifyTransaction}
+              disabled={isVerifying || !verificationTransactionId.trim()}
+            >
+              {isVerifying ? 'Verifying...' : 'Verify Transaction'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 };
