@@ -1,10 +1,12 @@
-
 export interface User {
   id: string;
   name: string;
   email: string;
   role: 'user' | 'admin';
   avatar?: string;
+  emailVerified?: boolean;
+  provider?: 'email' | 'google' | 'facebook';
+  socialId?: string;
 }
 
 export interface Campaign {
@@ -44,4 +46,3 @@ export interface DonationFormData {
   message?: string;
   anonymous: boolean;
 }
-

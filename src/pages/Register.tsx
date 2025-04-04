@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Mail, Lock, User, Facebook, Google } from 'lucide-react';
 
 const Register: React.FC = () => {
   const [name, setName] = useState('');
@@ -14,7 +15,7 @@ const Register: React.FC = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { register, isAuthenticated } = useAuth();
+  const { register, isAuthenticated, socialLogin } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   
@@ -41,10 +42,6 @@ const Register: React.FC = () => {
     
     try {
       await register(name, email, password);
-      toast({
-        title: "Registration Successful",
-        description: "Your account has been created. Welcome to GivingForward!",
-      });
       navigate('/');
     } catch (error) {
       toast({
@@ -54,6 +51,19 @@ const Register: React.FC = () => {
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+  
+  const handleSocialLogin = async (provider: 'google' | 'facebook') => {
+    try {
+      await socialLogin(provider);
+      navigate('/');
+    } catch (error) {
+      toast({
+        title: "Registration Failed",
+        description: `Failed to register with ${provider}. Please try again.`,
+        variant: "destructive"
+      });
     }
   };
 
@@ -74,54 +84,70 @@ const Register: React.FC = () => {
                   <label htmlFor="name" className="text-sm font-medium">
                     Full Name
                   </label>
-                  <Input
-                    id="name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="John Doe"
-                    required
-                  />
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+                    <Input
+                      id="name"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="John Doe"
+                      className="pl-10"
+                      required
+                    />
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <label htmlFor="email" className="text-sm font-medium">
                     Email
                   </label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="example@email.com"
-                    required
-                  />
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+                    <Input
+                      id="email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="example@email.com"
+                      className="pl-10"
+                      required
+                    />
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <label htmlFor="password" className="text-sm font-medium">
                     Password
                   </label>
-                  <Input
-                    id="password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    required
-                    minLength={6}
-                  />
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+                    <Input
+                      id="password"
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="pl-10"
+                      required
+                      minLength={6}
+                    />
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <label htmlFor="confirmPassword" className="text-sm font-medium">
                     Confirm Password
                   </label>
-                  <Input
-                    id="confirmPassword"
-                    type="password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="••••••••"
-                    required
-                    minLength={6}
-                  />
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+                    <Input
+                      id="confirmPassword"
+                      type="password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="pl-10"
+                      required
+                      minLength={6}
+                    />
+                  </div>
                 </div>
                 <Button
                   type="submit"
@@ -130,6 +156,34 @@ const Register: React.FC = () => {
                 >
                   {isLoading ? 'Creating account...' : 'Create Account'}
                 </Button>
+                
+                <div className="relative flex items-center justify-center mt-4">
+                  <span className="bg-background px-2 text-xs text-muted-foreground">OR SIGN UP WITH</span>
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t"></span>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-3">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => handleSocialLogin('google')}
+                    className="w-full"
+                  >
+                    <Google className="mr-2 h-4 w-4" />
+                    Google
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => handleSocialLogin('facebook')}
+                    className="w-full"
+                  >
+                    <Facebook className="mr-2 h-4 w-4" />
+                    Facebook
+                  </Button>
+                </div>
               </form>
             </CardContent>
             <CardFooter>

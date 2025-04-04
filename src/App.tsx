@@ -22,6 +22,8 @@ import MyCampaigns from "./pages/MyCampaigns";
 import EditCampaign from "./pages/EditCampaign";
 import MyDonations from "./pages/MyDonations";
 import AboutUs from "./pages/AboutUs";
+import VerifyEmail from "./pages/VerifyEmail";
+import ResetPassword from "./pages/ResetPassword";
 
 const queryClient = new QueryClient();
 
@@ -47,6 +49,8 @@ const App = () => (
               <Route path="/edit-campaign/:id" element={<EditCampaign />} />
               <Route path="/my-donations" element={<MyDonations />} />
               <Route path="/about" element={<AboutUs />} />
+              <Route path="/verify-email" element={<VerifyEmail />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
