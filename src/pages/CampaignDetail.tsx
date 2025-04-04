@@ -190,17 +190,16 @@ const CampaignDetail = () => {
           <div className="lg:w-1/3">
             <div className="bg-gray-50 p-6 rounded-lg sticky top-24">
               <h2 className="text-xl font-bold mb-4">Support This Campaign</h2>
-              <DonationForm campaignId={campaign.id} />
+              <DonationForm 
+                campaignId={campaign.id} 
+                campaignTitle={campaign.title} 
+              />
             </div>
           </div>
         </div>
       </div>
     </Layout>
   );
-};
-
-const calculateProgress = (raised: number, goal: number): number => {
-  return (raised / goal) * 100;
 };
 
 export default CampaignDetail;

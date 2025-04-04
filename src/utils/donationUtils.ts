@@ -31,6 +31,24 @@ export const formatDate = (dateString: string): string => {
 };
 
 /**
+ * Calculate days left until the end date
+ */
+export const calculateDaysLeft = (endDateString: string): number => {
+  const endDate = new Date(endDateString);
+  const today = new Date();
+  
+  // Reset time portion for accurate day calculation
+  endDate.setHours(0, 0, 0, 0);
+  today.setHours(0, 0, 0, 0);
+  
+  // Calculate difference in milliseconds and convert to days
+  const differenceInTime = endDate.getTime() - today.getTime();
+  const differenceInDays = Math.ceil(differenceInTime / (1000 * 3600 * 24));
+  
+  return Math.max(0, differenceInDays); // Ensure it doesn't go negative
+};
+
+/**
  * Generate a UPI payment URL
  */
 export const generateUPIPaymentURL = (
