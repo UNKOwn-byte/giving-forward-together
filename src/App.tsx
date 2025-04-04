@@ -20,6 +20,8 @@ import Profile from "./pages/Profile";
 import CreateCampaign from "./pages/CreateCampaign";
 import MyCampaigns from "./pages/MyCampaigns";
 import EditCampaign from "./pages/EditCampaign";
+import MyDonations from "./pages/MyDonations";
+import AboutUs from "./pages/AboutUs";
 
 const queryClient = new QueryClient();
 
@@ -43,6 +45,8 @@ const App = () => (
               <Route path="/create-campaign" element={<CreateCampaign />} />
               <Route path="/my-campaigns" element={<MyCampaigns />} />
               <Route path="/edit-campaign/:id" element={<EditCampaign />} />
+              <Route path="/my-donations" element={<MyDonations />} />
+              <Route path="/about" element={<AboutUs />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

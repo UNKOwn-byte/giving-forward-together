@@ -3,18 +3,18 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/layout/Layout';
 import { useAuth } from '../context/AuthContext';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { User, CameraIcon, Check, Save, X } from 'lucide-react';
+import { User, Save, X, Check } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import ProfilePictureUploader from '../components/profile/ProfilePictureUploader';
 
 const Profile: React.FC = () => {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, updateProfile } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -44,15 +44,27 @@ const Profile: React.FC = () => {
     });
   };
 
-  const handleSaveProfile = () => {
-    // In a real app, this would call an API to update the user profile
-    // For this demo, we'll just show a success toast
-    toast({
-      title: "Profile updated",
-      description: "Your profile information has been updated successfully.",
-      variant: "default",
-    });
-    setIsEditing(false);
+  const handleSaveProfile = async () => {
+    try {
+      await updateProfile({
+        name: profileData.name,
+        email: profileData.email,
+        avatar: profileData.avatar
+      });
+
+      toast({
+        title: "Profile updated",
+        description: "Your profile information has been updated successfully.",
+        variant: "default",
+      });
+      setIsEditing(false);
+    } catch (error) {
+      toast({
+        title: "Update failed",
+        description: "There was a problem updating your profile.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleCancelEdit = () => {
@@ -65,6 +77,18 @@ const Profile: React.FC = () => {
     setIsEditing(false);
   };
 
+  const handleAvatarChange = (newAvatarUrl: string) => {
+    setProfileData({
+      ...profileData,
+      avatar: newAvatarUrl,
+    });
+    
+    // Immediately update the profile with the new avatar
+    updateProfile({
+      avatar: newAvatarUrl
+    });
+  };
+
   return (
     <Layout>
       <div className="container mx-auto px-4 py-8">
@@ -74,17 +98,11 @@ const Profile: React.FC = () => {
           {/* Profile Card */}
           <Card className="md:col-span-1">
             <CardHeader className="pb-0 flex flex-col items-center">
-              <div className="relative group">
-                <Avatar className="h-24 w-24 mb-2">
-                  <AvatarImage src={profileData.avatar} alt={profileData.name} />
-                  <AvatarFallback className="text-xl">
-                    {profileData.name.substring(0, 2).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="absolute bottom-0 right-0 p-1 bg-primary rounded-full cursor-pointer">
-                  <CameraIcon className="h-4 w-4 text-white" />
-                </div>
-              </div>
+              <ProfilePictureUploader
+                currentAvatar={profileData.avatar}
+                name={profileData.name}
+                onAvatarChange={handleAvatarChange}
+              />
               <CardTitle className="mt-4 text-center">{profileData.name}</CardTitle>
               <CardDescription className="text-center">
                 {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
