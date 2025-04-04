@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User } from '../types';
 
@@ -19,7 +18,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user is logged in (from localStorage in this demo)
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
       setUser(JSON.parse(storedUser));
@@ -28,13 +26,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const login = async (email: string, password: string) => {
-    // This would be a real API call in production
     setIsLoading(true);
     
-    // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 1000));
     
-    // Mock login - in production this would validate with a backend
     if (email === 'admin@example.com' && password === 'password') {
       const adminUser: User = {
         id: '1',
@@ -63,13 +58,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const register = async (name: string, email: string, password: string) => {
-    // This would be a real API call in production
     setIsLoading(true);
     
-    // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 1000));
     
-    // Mock registration - in production this would register with a backend
     const newUser: User = {
       id: Math.random().toString(36).substring(2, 9),
       name,
@@ -84,10 +76,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const updateProfile = async (updates: Partial<User>) => {
-    // This would be a real API call in production
     setIsLoading(true);
     
-    // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 1000));
     
     if (user) {

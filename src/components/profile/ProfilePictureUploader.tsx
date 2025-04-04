@@ -3,13 +3,16 @@ import React, { useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
-import { CameraIcon, X } from 'lucide-react';
+import { CameraIcon, X, Trash2 } from 'lucide-react';
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 
 interface ProfilePictureUploaderProps {
   currentAvatar: string;
   name: string;
-  onAvatarChange: (avatarDataUrl: string) => void;
+  onAvatarChange: (avatarDataUrl: string | null) => void;
 }
+
+const DEFAULT_AVATAR = '/placeholder.svg';
 
 const ProfilePictureUploader: React.FC<ProfilePictureUploaderProps> = ({
   currentAvatar,
@@ -17,6 +20,7 @@ const ProfilePictureUploader: React.FC<ProfilePictureUploaderProps> = ({
   onAvatarChange
 }) => {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [confirmRemoveOpen, setConfirmRemoveOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
@@ -71,18 +75,30 @@ const ProfilePictureUploader: React.FC<ProfilePictureUploaderProps> = ({
     }
   };
 
+  const handleRemoveAvatar = () => {
+    onAvatarChange(null);
+    setConfirmRemoveOpen(false);
+    toast({
+      title: "Profile picture removed",
+      description: "Your profile picture has been removed",
+      variant: "default",
+    });
+  };
+
   const triggerFileSelect = () => {
     if (fileInputRef.current) {
       fileInputRef.current.click();
     }
   };
 
+  const isDefaultImage = !currentAvatar || currentAvatar === DEFAULT_AVATAR;
+
   return (
     <div className="flex flex-col items-center">
       <div className="relative group">
         <Avatar className="h-24 w-24 mb-2">
           <AvatarImage 
-            src={previewUrl || currentAvatar} 
+            src={previewUrl || currentAvatar || DEFAULT_AVATAR} 
             alt={name} 
           />
           <AvatarFallback className="text-xl">
@@ -95,6 +111,15 @@ const ProfilePictureUploader: React.FC<ProfilePictureUploaderProps> = ({
         >
           <CameraIcon className="h-4 w-4 text-white" />
         </div>
+        
+        {!isDefaultImage && !previewUrl && (
+          <div 
+            className="absolute top-0 right-0 p-1 bg-destructive rounded-full cursor-pointer"
+            onClick={() => setConfirmRemoveOpen(true)}
+          >
+            <Trash2 className="h-4 w-4 text-white" />
+          </div>
+        )}
       </div>
 
       <input
@@ -114,6 +139,19 @@ const ProfilePictureUploader: React.FC<ProfilePictureUploaderProps> = ({
           </Button>
         </div>
       )}
+
+      <Dialog open={confirmRemoveOpen} onOpenChange={setConfirmRemoveOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Remove Profile Picture</DialogTitle>
+          </DialogHeader>
+          <p>Are you sure you want to remove your profile picture? This action cannot be undone.</p>
+          <DialogFooter className="mt-4">
+            <Button variant="outline" onClick={() => setConfirmRemoveOpen(false)}>Cancel</Button>
+            <Button variant="destructive" onClick={handleRemoveAvatar}>Remove</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/layout/Layout';
@@ -13,6 +12,8 @@ import { User, Save, X, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import ProfilePictureUploader from '../components/profile/ProfilePictureUploader';
 
+const DEFAULT_AVATAR = '/placeholder.svg';
+
 const Profile: React.FC = () => {
   const { user, isAuthenticated, updateProfile } = useAuth();
   const navigate = useNavigate();
@@ -22,7 +23,7 @@ const Profile: React.FC = () => {
   const [profileData, setProfileData] = useState({
     name: user?.name || '',
     email: user?.email || '',
-    avatar: user?.avatar || '/placeholder.svg',
+    avatar: user?.avatar || DEFAULT_AVATAR,
   });
 
   // Check if user is authenticated
@@ -72,20 +73,23 @@ const Profile: React.FC = () => {
     setProfileData({
       name: user.name,
       email: user.email,
-      avatar: user.avatar || '/placeholder.svg',
+      avatar: user.avatar || DEFAULT_AVATAR,
     });
     setIsEditing(false);
   };
 
-  const handleAvatarChange = (newAvatarUrl: string) => {
+  const handleAvatarChange = (newAvatarUrl: string | null) => {
+    // If null is passed, set to default avatar
+    const avatarToUse = newAvatarUrl || DEFAULT_AVATAR;
+    
     setProfileData({
       ...profileData,
-      avatar: newAvatarUrl,
+      avatar: avatarToUse,
     });
     
     // Immediately update the profile with the new avatar
     updateProfile({
-      avatar: newAvatarUrl
+      avatar: avatarToUse
     });
   };
 
