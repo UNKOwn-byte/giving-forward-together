@@ -107,8 +107,15 @@ const CampaignForm: React.FC<CampaignFormProps> = ({ campaignToEdit, isAdmin = f
         });
       } else {
         // Create new campaign
+        // Make sure all required fields are properly typed
         const newCampaign = await addCampaign({
-          ...values,
+          title: values.title,
+          shortDescription: values.shortDescription,
+          description: values.description,
+          goal: values.goal,
+          category: values.category,
+          image: values.image,
+          endDate: values.endDate,
           organizer: user.id,
           featured: isAdmin ? true : false,
         });

@@ -5,7 +5,7 @@ import Layout from '../components/layout/Layout';
 import DonationForm from '../components/donation/DonationForm';
 import { useData } from '../context/DataContext';
 import { useAuth } from '../context/AuthContext';
-import { formatCurrency, formatDate, calculateDaysLeft } from '../utils/donationUtils';
+import { formatCurrency, formatDate, calculateDaysLeft, calculateProgress } from '../utils/donationUtils';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import SocialShare from '../components/campaigns/SocialShare';
