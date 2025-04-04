@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -107,7 +106,6 @@ const CampaignForm: React.FC<CampaignFormProps> = ({ campaignToEdit, isAdmin = f
         });
       } else {
         // Create new campaign
-        // Make sure all required fields are properly typed
         const newCampaign = await addCampaign({
           title: values.title,
           shortDescription: values.shortDescription,
