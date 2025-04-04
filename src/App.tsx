@@ -24,11 +24,6 @@ import MyDonations from "./pages/MyDonations";
 import AboutUs from "./pages/AboutUs";
 import VerifyEmail from "./pages/VerifyEmail";
 import ResetPassword from "./pages/ResetPassword";
-import Blog from "./pages/Blog";
-import BlogPost from "./pages/BlogPost";
-import SuccessStories from "./pages/SuccessStories";
-import SuccessStoryDetail from "./pages/SuccessStoryDetail";
-import FAQ from "./pages/FAQ";
 
 const queryClient = new QueryClient();
 
@@ -56,12 +51,6 @@ const App = () => (
               <Route path="/about" element={<AboutUs />} />
               <Route path="/verify-email" element={<VerifyEmail />} />
               <Route path="/reset-password" element={<ResetPassword />} />
-              {/* New Content Management Routes */}
-              <Route path="/blog" element={<Blog />} />
-              <Route path="/blog/:slug" element={<BlogPost />} />
-              <Route path="/success-stories" element={<SuccessStories />} />
-              <Route path="/success-stories/:id" element={<SuccessStoryDetail />} />
-              <Route path="/faq" element={<FAQ />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

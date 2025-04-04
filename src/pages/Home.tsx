@@ -2,233 +2,225 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import Layout from '../components/layout/Layout';
+import CampaignCard from '../components/campaigns/CampaignCard';
 import { useData } from '../context/DataContext';
+import { useAuth } from '../context/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import CampaignCategories from '../components/campaigns/CampaignCategories';
-import { formatCurrency, formatDate, calculateProgress } from '../utils/donationUtils';
 
-const Home = () => {
-  const { 
-    featuredCampaigns, 
-    featuredBlogPosts, 
-    featuredSuccessStories,
-    campaignCategories 
-  } = useData();
-
+const Home: React.FC = () => {
+  const { featuredCampaigns, campaigns } = useData();
+  const { user, isAuthenticated } = useAuth();
+  
   return (
     <Layout>
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-brand-50 to-gray-100 py-16">
+      <section className="bg-gradient-to-br from-brand-50 to-donation-50 py-16 md:py-24">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row items-center">
-            <div className="md:w-1/2 mb-8 md:mb-0">
-              <h1 className="text-4xl md:text-5xl font-bold mb-4">
-                Make a Difference Today
-              </h1>
-              <p className="text-xl mb-6 text-gray-600">
-                Join our community of changemakers and support causes that matter. Every donation counts.
+            <div className="md:w-1/2 mb-10 md:mb-0">
+              {isAuthenticated && user ? (
+                <h1 className="text-4xl md:text-5xl font-bold mb-6 hero-text-gradient">
+                  Welcome back, {user.name}!
+                </h1>
+              ) : (
+                <h1 className="text-4xl md:text-5xl font-bold mb-6 hero-text-gradient">
+                  Make a Difference with Your Donation
+                </h1>
+              )}
+              <p className="text-lg md:text-xl text-gray-700 mb-8">
+                Support meaningful causes and help those in need. Your contribution, no matter how small, 
+                can create a significant impact on someone's life.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Button size="lg" asChild>
-                  <Link to="/campaigns">Donate Now</Link>
+              <div className="flex flex-wrap gap-4">
+                <Button asChild size="lg" className="bg-brand-500 hover:bg-brand-600">
+                  <Link to="/campaigns">Explore Campaigns</Link>
                 </Button>
-                <Button size="lg" variant="outline" asChild>
-                  <Link to="/create-campaign">Start Fundraising</Link>
+                <Button asChild variant="outline" size="lg">
+                  <Link to="/how-it-works">How It Works</Link>
                 </Button>
               </div>
             </div>
-            <div className="md:w-1/2">
-              <img
-                src="https://images.unsplash.com/photo-1593113598332-cd288d649433"
-                alt="Fundraising"
-                className="rounded-lg shadow-lg w-full h-80 object-cover"
+            <div className="md:w-1/2 md:pl-10">
+              <img 
+                src="https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?q=80&w=2070&auto=format&fit=crop" 
+                alt="People donating" 
+                className="rounded-lg shadow-xl w-full h-auto object-cover"
               />
             </div>
           </div>
         </div>
       </section>
-
+      
       {/* Featured Campaigns Section */}
-      <section className="py-16">
+      <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
-          <div className="flex justify-between items-center mb-8">
-            <h2 className="text-3xl font-bold">Featured Campaigns</h2>
-            <Button variant="outline" asChild>
-              <Link to="/campaigns">View All</Link>
-            </Button>
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold mb-4">Featured Campaigns</h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              These campaigns need your immediate attention. Your support can make a real difference.
+            </p>
           </div>
-
+          
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {featuredCampaigns.slice(0, 3).map((campaign) => (
-              <Card key={campaign.id} className="flex flex-col h-full">
-                <div className="h-48 relative">
-                  <img
-                    src={campaign.image}
-                    alt={campaign.title}
-                    className="w-full h-full object-cover rounded-t-lg"
-                  />
-                  {campaign.featured && (
-                    <span className="absolute top-2 right-2 bg-brand-500 text-white text-xs py-1 px-2 rounded">
-                      Featured
-                    </span>
-                  )}
-                </div>
-                <CardHeader>
-                  <CardTitle className="text-xl">
-                    <Link to={`/campaign/${campaign.id}`} className="hover:text-brand-600">
-                      {campaign.title}
-                    </Link>
-                  </CardTitle>
-                  <CardDescription className="line-clamp-2">
-                    {campaign.shortDescription}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="flex-grow">
-                  <div className="space-y-4">
-                    <div>
-                      <div className="flex justify-between text-sm mb-1">
-                        <span>{Math.round(calculateProgress(campaign.raised, campaign.goal))}% Complete</span>
-                        <span>{formatCurrency(campaign.raised)} raised</span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div
-                          className="bg-brand-500 h-2 rounded-full"
-                          style={{ width: `${Math.min(calculateProgress(campaign.raised, campaign.goal), 100)}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                    <div className="text-sm text-gray-500">
-                      {campaign.endDate
-                        ? `Ends on ${formatDate(campaign.endDate)}`
-                        : 'Ongoing campaign'}
-                    </div>
-                  </div>
-                </CardContent>
-                <CardFooter>
-                  <Button asChild className="w-full">
-                    <Link to={`/campaign/${campaign.id}`}>
-                      View Campaign
-                    </Link>
-                  </Button>
-                </CardFooter>
-              </Card>
+            {featuredCampaigns.map(campaign => (
+              <CampaignCard key={campaign.id} campaign={campaign} />
             ))}
           </div>
-        </div>
-      </section>
-
-      {/* Categories Section */}
-      <section className="py-16 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold mb-8">Browse by Category</h2>
-          <CampaignCategories />
-        </div>
-      </section>
-
-      {/* Success Stories Section */}
-      <section className="py-16">
-        <div className="container mx-auto px-4">
-          <div className="flex justify-between items-center mb-8">
-            <h2 className="text-3xl font-bold">Success Stories</h2>
-            <Button variant="outline" asChild>
-              <Link to="/success-stories">View All</Link>
+          
+          <div className="text-center mt-12">
+            <Button asChild>
+              <Link to="/campaigns">View All Campaigns</Link>
             </Button>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {featuredSuccessStories.slice(0, 2).map((story) => (
-              <Card key={story.id} className="overflow-hidden">
-                <div className="md:flex h-full">
-                  <div className="md:w-2/5">
-                    <img
-                      src={story.image}
-                      alt={story.title}
-                      className="h-48 md:h-full w-full object-cover"
-                    />
-                  </div>
-                  <div className="md:w-3/5 p-6 flex flex-col">
-                    <CardTitle className="mb-2">{story.title}</CardTitle>
-                    <CardDescription className="mb-4 line-clamp-3">
-                      {story.content.split('\n\n')[0]}
-                    </CardDescription>
-                    <div className="mt-auto">
-                      <Button variant="outline" asChild>
-                        <Link to={`/success-stories/${story.id}`}>
-                          Read Full Story
-                        </Link>
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </Card>
-            ))}
-          </div>
         </div>
       </section>
-
-      {/* Blog Posts Section */}
+      
+      {/* How It Works Section */}
       <section className="py-16 bg-gray-50">
         <div className="container mx-auto px-4">
-          <div className="flex justify-between items-center mb-8">
-            <h2 className="text-3xl font-bold">Latest from Our Blog</h2>
-            <Button variant="outline" asChild>
-              <Link to="/blog">View All</Link>
-            </Button>
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold mb-4">How It Works</h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Making a donation is simple, secure, and completely free using UPI payment.
+            </p>
           </div>
-
+          
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {featuredBlogPosts.slice(0, 3).map((post) => (
-              <Card key={post.id} className="overflow-hidden flex flex-col h-full">
-                <div className="h-48 overflow-hidden">
-                  <img
-                    src={post.image}
-                    alt={post.title}
-                    className="w-full h-full object-cover transition-transform hover:scale-105"
-                  />
-                </div>
-                <CardHeader>
-                  <div className="text-sm text-gray-500 mb-1">{formatDate(post.createdAt)}</div>
-                  <CardTitle className="line-clamp-2">
-                    <Link to={`/blog/${post.slug}`} className="hover:text-brand-600">
-                      {post.title}
-                    </Link>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="flex-grow">
-                  <CardDescription className="line-clamp-3">
-                    {post.excerpt}
-                  </CardDescription>
-                </CardContent>
-                <CardFooter>
-                  <Button variant="ghost" asChild className="text-brand-600 hover:text-brand-800 p-0">
-                    <Link to={`/blog/${post.slug}`}>
-                      Read More
-                    </Link>
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))}
+            <div className="bg-white p-6 rounded-lg shadow-md">
+              <div className="w-12 h-12 bg-brand-100 rounded-full flex items-center justify-center mb-4 text-brand-600 font-bold text-xl">
+                1
+              </div>
+              <h3 className="text-xl font-bold mb-3">Choose a Campaign</h3>
+              <p className="text-gray-600">
+                Browse through our campaigns and select the cause that resonates with you.
+              </p>
+            </div>
+            
+            <div className="bg-white p-6 rounded-lg shadow-md">
+              <div className="w-12 h-12 bg-brand-100 rounded-full flex items-center justify-center mb-4 text-brand-600 font-bold text-xl">
+                2
+              </div>
+              <h3 className="text-xl font-bold mb-3">Make a Donation</h3>
+              <p className="text-gray-600">
+                Enter your donation amount and pay securely using any UPI app - Google Pay, PhonePe, or others.
+              </p>
+            </div>
+            
+            <div className="bg-white p-6 rounded-lg shadow-md">
+              <div className="w-12 h-12 bg-brand-100 rounded-full flex items-center justify-center mb-4 text-brand-600 font-bold text-xl">
+                3
+              </div>
+              <h3 className="text-xl font-bold mb-3">Track Your Impact</h3>
+              <p className="text-gray-600">
+                Receive updates about how your donation is making a difference in the lives of others.
+              </p>
+            </div>
+          </div>
+          
+          <div className="text-center mt-12">
+            <Button variant="outline" asChild>
+              <Link to="/how-it-works">Learn More</Link>
+            </Button>
           </div>
         </div>
       </section>
-
-      {/* Call to Action */}
+      
+      {/* Impact Numbers Section */}
       <section className="py-16 bg-brand-600 text-white">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">Start Making a Difference Today</h2>
-          <p className="text-xl mb-8 max-w-3xl mx-auto">
-            Whether you want to donate to an existing cause or start your own fundraising campaign,
-            you can make a positive impact right now.
-          </p>
-          <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <Button size="lg" variant="secondary" asChild>
-              <Link to="/campaigns">Donate Now</Link>
-            </Button>
-            <Button size="lg" variant="outline" className="bg-transparent text-white hover:bg-white hover:text-brand-600" asChild>
-              <Link to="/create-campaign">Start a Campaign</Link>
-            </Button>
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+            <div>
+              <div className="text-4xl md:text-5xl font-bold mb-2">₹{(campaigns.reduce((sum, campaign) => sum + campaign.raised, 0) / 100000).toFixed(1)}L+</div>
+              <div className="text-lg">Funds Raised</div>
+            </div>
+            
+            <div>
+              <div className="text-4xl md:text-5xl font-bold mb-2">{campaigns.length}+</div>
+              <div className="text-lg">Active Campaigns</div>
+            </div>
+            
+            <div>
+              <div className="text-4xl md:text-5xl font-bold mb-2">1000+</div>
+              <div className="text-lg">Donors</div>
+            </div>
+            
+            <div>
+              <div className="text-4xl md:text-5xl font-bold mb-2">5+</div>
+              <div className="text-lg">Categories</div>
+            </div>
           </div>
+        </div>
+      </section>
+      
+      {/* Testimonials Section */}
+      <section className="py-16 bg-white">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold mb-4">What Our Donors Say</h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Our community of donors share their experiences and the impact of their contributions.
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="bg-gray-50 p-6 rounded-lg">
+              <div className="flex items-center mb-4">
+                <div className="w-12 h-12 bg-brand-100 rounded-full flex items-center justify-center mr-4">
+                  <span className="text-brand-600 font-bold">RS</span>
+                </div>
+                <div>
+                  <h4 className="font-bold">Rahul Sharma</h4>
+                  <p className="text-sm text-gray-500">Regular Donor</p>
+                </div>
+              </div>
+              <p className="text-gray-600">
+                "I've been donating to GivingForward for over a year now. The transparency and the impact updates really make me feel connected to the causes."
+              </p>
+            </div>
+            
+            <div className="bg-gray-50 p-6 rounded-lg">
+              <div className="flex items-center mb-4">
+                <div className="w-12 h-12 bg-brand-100 rounded-full flex items-center justify-center mr-4">
+                  <span className="text-brand-600 font-bold">PP</span>
+                </div>
+                <div>
+                  <h4 className="font-bold">Priya Patel</h4>
+                  <p className="text-sm text-gray-500">First-time Donor</p>
+                </div>
+              </div>
+              <p className="text-gray-600">
+                "The UPI payment option made donating so easy! I was able to contribute to a healthcare campaign within minutes. Will definitely donate again."
+              </p>
+            </div>
+            
+            <div className="bg-gray-50 p-6 rounded-lg">
+              <div className="flex items-center mb-4">
+                <div className="w-12 h-12 bg-brand-100 rounded-full flex items-center justify-center mr-4">
+                  <span className="text-brand-600 font-bold">VK</span>
+                </div>
+                <div>
+                  <h4 className="font-bold">Vivek Kumar</h4>
+                  <p className="text-sm text-gray-500">Monthly Donor</p>
+                </div>
+              </div>
+              <p className="text-gray-600">
+                "I set up a monthly donation to an education campaign. It's rewarding to see regular updates about how my contributions are helping children access education."
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+      
+      {/* CTA Section */}
+      <section className="py-16 bg-donation-50">
+        <div className="container mx-auto px-4 text-center">
+          <h2 className="text-3xl md:text-4xl font-bold mb-6">Ready to Make a Difference?</h2>
+          <p className="text-lg text-gray-700 mb-8 max-w-2xl mx-auto">
+            Your contribution can change lives. Join our community of donors and be a part of something meaningful.
+          </p>
+          <Button asChild size="lg" className="bg-brand-500 hover:bg-brand-600">
+            <Link to="/campaigns">Donate Now</Link>
+          </Button>
         </div>
       </section>
     </Layout>
