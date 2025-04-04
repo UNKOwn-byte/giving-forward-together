@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Layout from '../components/layout/Layout';
@@ -7,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Mail, Lock, User, Facebook, Google } from 'lucide-react';
+import { Mail, Lock, User, Facebook, ExternalLink } from 'lucide-react';
 
 const Register: React.FC = () => {
   const [name, setName] = useState('');
@@ -19,7 +18,6 @@ const Register: React.FC = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   
-  // Redirect if already logged in
   React.useEffect(() => {
     if (isAuthenticated) {
       navigate('/');
@@ -171,7 +169,7 @@ const Register: React.FC = () => {
                     onClick={() => handleSocialLogin('google')}
                     className="w-full"
                   >
-                    <Google className="mr-2 h-4 w-4" />
+                    <ExternalLink className="mr-2 h-4 w-4" />
                     Google
                   </Button>
                   <Button

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Layout from '../components/layout/Layout';
@@ -9,7 +8,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
-import { Mail, Lock, Facebook, Google } from 'lucide-react';
+import { Mail, Lock, Facebook, ExternalLink } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -23,7 +22,6 @@ const Login: React.FC = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   
-  // Define form schema for forgot password
   const forgotPasswordSchema = z.object({
     email: z.string().email({ message: "Please enter a valid email address" }),
   });
@@ -35,7 +33,6 @@ const Login: React.FC = () => {
     },
   });
   
-  // Redirect if already logged in
   React.useEffect(() => {
     if (isAuthenticated) {
       navigate('/');
@@ -169,7 +166,7 @@ const Login: React.FC = () => {
                     onClick={() => handleSocialLogin('google')}
                     className="w-full"
                   >
-                    <Google className="mr-2 h-4 w-4" />
+                    <ExternalLink className="mr-2 h-4 w-4" />
                     Google
                   </Button>
                   <Button
@@ -202,7 +199,6 @@ const Login: React.FC = () => {
         </div>
       </div>
       
-      {/* Forgot Password Dialog */}
       <Dialog open={forgotPasswordOpen} onOpenChange={setForgotPasswordOpen}>
         <DialogContent>
           <DialogHeader>
