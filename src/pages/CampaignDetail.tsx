@@ -3,23 +3,30 @@ import React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Layout from '../components/layout/Layout';
 import DonationForm from '../components/donation/DonationForm';
+import CampaignUpdates from '../components/campaigns/CampaignUpdates';
+import CampaignComments from '../components/campaigns/CampaignComments';
 import { useData } from '../context/DataContext';
 import { useAuth } from '../context/AuthContext';
 import { formatCurrency, formatDate, calculateDaysLeft, calculateProgress } from '../utils/donationUtils';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import SocialShare from '../components/campaigns/SocialShare';
-import { Edit } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Edit, Milestone } from 'lucide-react';
 
 const CampaignDetail = () => {
   const { id } = useParams<{ id: string }>();
-  const { getCampaign, getCampaignDonations } = useData();
+  const { getCampaign, getCampaignDonations, getCampaignUpdates } = useData();
   const { user } = useAuth();
   
   if (!id) return <div>Campaign not found</div>;
   
   const campaign = getCampaign(id);
   const donations = getCampaignDonations(id);
+  const updates = getCampaignUpdates(id);
+  const milestones = updates.filter(update => update.isMilestone).sort(
+    (a, b) => (a.milestoneTarget || 0) - (b.milestoneTarget || 0)
+  );
   const confirmedDonations = donations.filter(d => d.status === 'confirmed');
   
   if (!campaign) {
@@ -54,7 +61,15 @@ const CampaignDetail = () => {
           {/* Campaign Details */}
           <div className="lg:w-2/3">
             <div className="flex justify-between items-start mb-4">
-              <h1 className="text-3xl font-bold">{campaign.title}</h1>
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <Badge variant="outline">{campaign.category}</Badge>
+                  {campaign.featured && (
+                    <Badge className="bg-brand-500">Featured</Badge>
+                  )}
+                </div>
+                <h1 className="text-3xl font-bold">{campaign.title}</h1>
+              </div>
               <div className="flex space-x-2">
                 <SocialShare 
                   url={currentUrl}
@@ -79,9 +94,6 @@ const CampaignDetail = () => {
                 alt={campaign.title}
                 className="w-full h-full object-cover"
               />
-              <div className="absolute bottom-4 left-4 bg-white px-3 py-1 rounded-full text-sm font-medium">
-                {campaign.category}
-              </div>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -118,22 +130,40 @@ const CampaignDetail = () => {
               </div>
             </div>
             
+            {/* Progress bar with milestones */}
             <div className="mb-6">
               <div className="flex justify-between text-sm mb-1">
                 <span>{Math.round(progress)}% Complete</span>
                 <span>{formatCurrency(campaign.raised)} raised of {formatCurrency(campaign.goal)}</span>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-2.5">
-                <div 
-                  className="bg-brand-500 h-2.5 rounded-full" 
-                  style={{ width: `${Math.min(progress, 100)}%` }}
-                ></div>
+              
+              <div className="relative">
+                <div className="w-full bg-gray-200 rounded-full h-4">
+                  <div 
+                    className="bg-brand-500 h-4 rounded-full" 
+                    style={{ width: `${Math.min(progress, 100)}%` }}
+                  ></div>
+                </div>
+                
+                {/* Milestone markers */}
+                {milestones.map((milestone) => milestone.milestoneTarget && (
+                  <div
+                    key={milestone.id}
+                    className="absolute top-0 transform -translate-y-3"
+                    style={{ left: `${milestone.milestoneTarget}%` }}
+                    title={milestone.title}
+                  >
+                    <Milestone className="h-4 w-4 text-brand-700" />
+                  </div>
+                ))}
               </div>
             </div>
             
             <Tabs defaultValue="about">
               <TabsList>
                 <TabsTrigger value="about">About</TabsTrigger>
+                <TabsTrigger value="updates">Updates</TabsTrigger>
+                <TabsTrigger value="comments">Comments</TabsTrigger>
                 <TabsTrigger value="donations">Donations</TabsTrigger>
               </TabsList>
               
@@ -148,6 +178,14 @@ const CampaignDetail = () => {
                     ))}
                   </div>
                 </div>
+              </TabsContent>
+              
+              <TabsContent value="updates" className="py-4">
+                <CampaignUpdates campaign={campaign} />
+              </TabsContent>
+              
+              <TabsContent value="comments" className="py-4">
+                <CampaignComments campaign={campaign} />
               </TabsContent>
               
               <TabsContent value="donations" className="py-4">

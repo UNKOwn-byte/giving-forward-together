@@ -46,3 +46,72 @@ export interface DonationFormData {
   message?: string;
   anonymous: boolean;
 }
+
+// Blog Post Type
+export interface BlogPost {
+  id: string;
+  title: string;
+  slug: string;
+  content: string;
+  excerpt: string;
+  image: string;
+  author: string;
+  authorImage?: string;
+  category: string;
+  tags: string[];
+  createdAt: string;
+  featured?: boolean;
+}
+
+// Success Story Type
+export interface SuccessStory {
+  id: string;
+  title: string;
+  campaignId: string;
+  content: string;
+  image: string;
+  createdAt: string;
+  featured?: boolean;
+}
+
+// FAQ Item Type
+export interface FAQItem {
+  id: string;
+  question: string;
+  answer: string;
+  category: string;
+}
+
+// Campaign Update/Milestone Type
+export interface CampaignUpdate {
+  id: string;
+  campaignId: string;
+  title: string;
+  content: string;
+  image?: string;
+  createdAt: string;
+  isMilestone: boolean;
+  milestoneTarget?: number;
+}
+
+// Campaign Comment Type
+export interface CampaignComment {
+  id: string;
+  campaignId: string;
+  userId: string;
+  userName: string;
+  userImage?: string;
+  content: string;
+  createdAt: string;
+  parentId?: string; // For reply functionality
+}
+
+// Campaign Category Type (expanded)
+export interface CampaignCategory {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  image?: string;
+  count?: number; // Number of campaigns in this category
+}
