@@ -63,8 +63,8 @@ const CampaignComments: React.FC<CampaignCommentsProps> = ({ campaign }) => {
       await addCampaignComment({
         campaignId: campaign.id,
         userId: user!.id,
-        userName: user!.displayName || user!.email.split('@')[0],
-        userImage: user!.photoURL || undefined,
+        userName: user!.name || user!.email.split('@')[0],
+        userImage: user!.avatar || undefined,
         content: comment,
         parentId: replyTo || undefined,
       });
@@ -104,9 +104,9 @@ const CampaignComments: React.FC<CampaignCommentsProps> = ({ campaign }) => {
         <form onSubmit={handleSubmit}>
           <div className="flex items-start gap-4">
             <Avatar>
-              <AvatarImage src={user?.photoURL || undefined} />
+              <AvatarImage src={user?.avatar || undefined} />
               <AvatarFallback>
-                {user ? getInitials(user.displayName || user.email) : 'GU'}
+                {user ? getInitials(user.name || user.email) : 'GU'}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1">
