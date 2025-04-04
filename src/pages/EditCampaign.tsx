@@ -13,7 +13,7 @@ const EditCampaign: React.FC = () => {
   const { user, isAuthenticated } = useAuth();
   const { getCampaign } = useData();
   const [isLoading, setIsLoading] = useState(true);
-  const [campaign, setCampaign] = useState<ReturnType<typeof getCampaign>>(undefined);
+  const [campaign, setCampaign] = useState(undefined);
   
   // Redirect if not logged in
   if (!isAuthenticated) {
