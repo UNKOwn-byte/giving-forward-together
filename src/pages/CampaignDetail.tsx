@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Layout from '../components/layout/Layout';
@@ -59,7 +58,7 @@ const CampaignDetail = () => {
                 <SocialShare 
                   url={currentUrl}
                   title={campaign.title}
-                  description={campaign.shortDescription}
+                  description={campaign.shortDescription || campaign.description.substring(0, 150) + '...'}
                 />
                 
                 {isOwnerOrAdmin && (

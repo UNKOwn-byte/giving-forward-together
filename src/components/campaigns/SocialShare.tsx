@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Share, Check, Copy, Facebook, Twitter, Linkedin, Mail } from 'lucide-react';
+import { Share, Check, Copy, Facebook, Twitter, Linkedin, Mail, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Popover,
@@ -19,8 +19,11 @@ const SocialShare: React.FC<SocialShareProps> = ({ url, title, description }) =>
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
   
+  // Ensure URL is properly formatted (add http if missing)
+  const formattedUrl = url.startsWith('http') ? url : `https://${url}`;
+  
   // Encode parameters for sharing URLs
-  const encodedUrl = encodeURIComponent(url);
+  const encodedUrl = encodeURIComponent(formattedUrl);
   const encodedTitle = encodeURIComponent(title);
   const encodedDescription = encodeURIComponent(description);
   
@@ -31,33 +34,56 @@ const SocialShare: React.FC<SocialShareProps> = ({ url, title, description }) =>
   const emailShareUrl = `mailto:?subject=${encodedTitle}&body=${encodedDescription}%0A%0A${encodedUrl}`;
   
   const handleCopyLink = () => {
-    navigator.clipboard.writeText(url).then(() => {
-      setCopied(true);
-      toast({
-        title: "Link copied!",
-        description: "Campaign link has been copied to clipboard.",
+    navigator.clipboard.writeText(formattedUrl)
+      .then(() => {
+        setCopied(true);
+        toast({
+          title: "Link copied!",
+          description: "Campaign link has been copied to clipboard.",
+        });
+        
+        // Reset copied state after 2 seconds
+        setTimeout(() => setCopied(false), 2000);
+      })
+      .catch(err => {
+        console.error("Copy failed:", err);
+        toast({
+          title: "Failed to copy",
+          description: "Could not copy the link. Please try again.",
+          variant: "destructive",
+        });
       });
-      
-      // Reset copied state after 2 seconds
-      setTimeout(() => setCopied(false), 2000);
-    }).catch(err => {
-      toast({
-        title: "Failed to copy",
-        description: "Could not copy the link. Please try again.",
-        variant: "destructive",
-      });
-    });
   };
   
   const openShareWindow = (shareUrl: string) => {
-    window.open(shareUrl, '_blank', 'width=600,height=400');
+    try {
+      // Open a popup window centered on the screen
+      const width = 600;
+      const height = 400;
+      const left = window.innerWidth / 2 - width / 2;
+      const top = window.innerHeight / 2 - height / 2;
+      
+      const popup = window.open(
+        shareUrl, 
+        '_blank', 
+        `width=${width},height=${height},left=${left},top=${top},toolbar=0,location=0,menubar=0`
+      );
+      
+      // Focus the popup if available
+      if (popup) popup.focus();
+      
+    } catch (error) {
+      console.error("Share window error:", error);
+      // Fallback to regular window.open if popup fails
+      window.open(shareUrl, '_blank');
+    }
   };
   
   return (
     <Popover>
       <PopoverTrigger asChild>
         <Button variant="outline" className="flex items-center gap-2">
-          <Share size={16} />
+          <Share2 size={16} />
           Share
         </Button>
       </PopoverTrigger>
@@ -71,6 +97,7 @@ const SocialShare: React.FC<SocialShareProps> = ({ url, title, description }) =>
               size="icon" 
               className="h-8 w-8 text-blue-600"
               onClick={() => openShareWindow(facebookShareUrl)}
+              title="Share on Facebook"
             >
               <Facebook size={16} />
               <span className="sr-only">Facebook</span>
@@ -81,6 +108,7 @@ const SocialShare: React.FC<SocialShareProps> = ({ url, title, description }) =>
               size="icon" 
               className="h-8 w-8 text-sky-500"
               onClick={() => openShareWindow(twitterShareUrl)}
+              title="Share on Twitter"
             >
               <Twitter size={16} />
               <span className="sr-only">Twitter</span>
@@ -91,6 +119,7 @@ const SocialShare: React.FC<SocialShareProps> = ({ url, title, description }) =>
               size="icon" 
               className="h-8 w-8 text-blue-700"
               onClick={() => openShareWindow(linkedinShareUrl)}
+              title="Share on LinkedIn"
             >
               <Linkedin size={16} />
               <span className="sr-only">LinkedIn</span>
@@ -100,7 +129,16 @@ const SocialShare: React.FC<SocialShareProps> = ({ url, title, description }) =>
               variant="outline" 
               size="icon" 
               className="h-8 w-8 text-red-500"
-              onClick={() => window.location.href = emailShareUrl}
+              onClick={() => {
+                try {
+                  window.location.href = emailShareUrl;
+                } catch (error) {
+                  console.error("Email share error:", error);
+                  // Fallback to opening a new window if redirect fails
+                  window.open(emailShareUrl, '_blank');
+                }
+              }}
+              title="Share via Email"
             >
               <Mail size={16} />
               <span className="sr-only">Email</span>
