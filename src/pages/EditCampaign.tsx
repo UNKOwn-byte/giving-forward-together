@@ -7,13 +7,14 @@ import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Campaign } from '@/types';
 
 const EditCampaign: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { user, isAuthenticated } = useAuth();
   const { getCampaign } = useData();
   const [isLoading, setIsLoading] = useState(true);
-  const [campaign, setCampaign] = useState(undefined);
+  const [campaign, setCampaign] = useState<Campaign | undefined>(undefined);
   
   // Redirect if not logged in
   if (!isAuthenticated) {
