@@ -45,9 +45,14 @@ const AboutUs = () => {
             </div>
             <div className="order-first md:order-last">
               <img 
-                src="/placeholder.svg" 
+                src="https://images.unsplash.com/photo-1472396961693-142e6e269027?auto=format&fit=crop&w=800&q=80" 
                 alt="GivingForward Team" 
                 className="rounded-lg shadow-lg w-full h-auto"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.onerror = null;
+                  target.src = "https://images.unsplash.com/photo-1493962853295-0fd70327578a?auto=format&fit=crop&w=800&q=80";
+                }}
               />
             </div>
           </div>
