@@ -1,3 +1,4 @@
+
 export interface User {
   id: string;
   name: string;
@@ -7,6 +8,11 @@ export interface User {
   emailVerified?: boolean;
   provider?: 'email' | 'google' | 'facebook';
   socialId?: string;
+  level?: number;
+  progress?: number;
+  achievements?: string[];
+  donationsCount?: number;
+  totalDonated?: number;
 }
 
 export interface Campaign {
@@ -45,4 +51,28 @@ export interface DonationFormData {
   email: string;
   message?: string;
   anonymous: boolean;
+}
+
+export interface UserActivity {
+  id: string;
+  userId: string;
+  type: 'donation' | 'comment' | 'like' | 'share' | 'campaign_creation';
+  timestamp: string;
+  data: Record<string, any>;
+}
+
+export interface UserAchievement {
+  id: string;
+  name: string;
+  description: string;
+  unlockedAt?: string;
+  icon: string;
+  progress?: number;
+}
+
+export interface NotificationSettings {
+  emailNotifications: boolean;
+  donationAlerts: boolean;
+  campaignUpdates: boolean;
+  marketingEmails: boolean;
 }
