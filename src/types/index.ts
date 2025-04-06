@@ -13,6 +13,8 @@ export interface User {
   achievements?: string[];
   donationsCount?: number;
   totalDonated?: number;
+  createdAt?: string;
+  lastLoginAt?: string;
 }
 
 export interface Campaign {
@@ -28,6 +30,8 @@ export interface Campaign {
   createdAt: string;
   organizer: string;
   featured?: boolean;
+  status?: 'pending' | 'approved' | 'rejected';
+  rejectionReason?: string;
 }
 
 export interface Donation {
@@ -75,4 +79,26 @@ export interface NotificationSettings {
   donationAlerts: boolean;
   campaignUpdates: boolean;
   marketingEmails: boolean;
+}
+
+export interface FlaggedContent {
+  id: string;
+  type: 'campaign' | 'donation' | 'comment';
+  contentId: string;
+  reason: string;
+  reportedBy?: string;
+  createdAt: string;
+  status: 'pending' | 'reviewed' | 'dismissed';
+}
+
+export interface AdminAnalytics {
+  totalRaised: number;
+  totalDonors: number;
+  totalCampaigns: number;
+  approvedCampaigns: number;
+  pendingCampaigns: number;
+  rejectedCampaigns: number;
+  monthlyDonations: number[];
+  donationMethods: Record<string, number>;
+  categoryCounts: Record<string, number>;
 }

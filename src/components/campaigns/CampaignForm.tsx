@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -20,6 +21,9 @@ import {
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { AlertCircle } from 'lucide-react';
 
 // Define the campaign categories
 const CAMPAIGN_CATEGORIES = [
@@ -98,6 +102,7 @@ const CampaignForm: React.FC<CampaignFormProps> = ({ campaignToEdit, isAdmin = f
           ...values,
           organizer: isAdmin ? campaignToEdit.organizer : user.id,
           featured: isAdmin ? campaignToEdit.featured : false,
+          status: isAdmin ? 'approved' : 'pending', // Admins can directly approve
         });
 
         toast({
@@ -116,11 +121,14 @@ const CampaignForm: React.FC<CampaignFormProps> = ({ campaignToEdit, isAdmin = f
           endDate: values.endDate,
           organizer: user.id,
           featured: isAdmin ? true : false,
+          status: isAdmin ? 'approved' : 'pending', // Admins can directly approve
         });
 
         toast({
           title: 'Campaign created',
-          description: 'Your campaign has been created successfully',
+          description: isAdmin 
+            ? 'Your campaign has been created and approved successfully'
+            : 'Your campaign has been submitted for approval',
         });
 
         // Navigate to the new campaign
@@ -139,6 +147,39 @@ const CampaignForm: React.FC<CampaignFormProps> = ({ campaignToEdit, isAdmin = f
 
   return (
     <Form {...form}>
+      {!isAdmin && !campaignToEdit && (
+        <Alert className="mb-6">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Approval Required</AlertTitle>
+          <AlertDescription>
+            All new campaigns require approval before they become public. Our team typically reviews campaigns within 24-48 hours.
+          </AlertDescription>
+        </Alert>
+      )}
+      
+      {campaignToEdit && campaignToEdit.status && (
+        <div className="mb-6 flex items-center">
+          <span className="mr-2">Status:</span>
+          <Badge variant={
+            campaignToEdit.status === 'approved' ? 'default' :
+            campaignToEdit.status === 'pending' ? 'outline' : 'destructive'
+          }>
+            {campaignToEdit.status}
+          </Badge>
+          
+          {campaignToEdit.status === 'pending' && (
+            <span className="ml-2 text-sm text-muted-foreground">
+              Your campaign is being reviewed by our team
+            </span>
+          )}
+          {campaignToEdit.status === 'rejected' && (
+            <span className="ml-2 text-sm text-red-500">
+              This campaign was rejected. Please review and resubmit.
+            </span>
+          )}
+        </div>
+      )}
+      
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <FormField
           control={form.control}

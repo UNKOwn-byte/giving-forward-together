@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Campaign, Donation } from '../types';
+import { Campaign, Donation, User } from '../types';
 
 // Sample data for demo purposes
 import { campaigns, donations } from '../data/sampleData';
@@ -9,6 +9,7 @@ interface DataContextType {
   campaigns: Campaign[];
   donations: Donation[];
   featuredCampaigns: Campaign[];
+  users: User[];
   getCampaign: (id: string) => Campaign | undefined;
   getCampaignDonations: (campaignId: string) => Donation[];
   addDonation: (donation: Omit<Donation, 'id' | 'createdAt'>) => Promise<Donation>;
@@ -18,13 +19,75 @@ interface DataContextType {
   updateCampaign: (id: string, updates: Partial<Omit<Campaign, 'id' | 'createdAt' | 'raised'>>) => Promise<Campaign>;
   deleteCampaign: (id: string) => Promise<void>;
   getUserCampaigns: (organizerId: string) => Campaign[];
+  updateCampaignStatus: (id: string, status: 'pending' | 'approved' | 'rejected') => Promise<void>;
+  flagContent: (type: 'campaign' | 'donation', id: string, reason: string) => Promise<void>;
+  updateUserRole: (id: string, role: 'user' | 'admin') => Promise<void>;
+  getFlaggedContent: () => Array<{type: 'campaign' | 'donation', id: string, reason: string}>;
+  getUsers: () => User[];
+  getCampaignsByStatus: (status: 'pending' | 'approved' | 'rejected') => Campaign[];
+  getAnalyticsData: () => any;
 }
+
+// Sample users for demo
+const sampleUsers: User[] = [
+  {
+    id: '1',
+    name: 'Admin User',
+    email: 'admin@example.com',
+    role: 'admin',
+    avatar: '/placeholder.svg',
+    emailVerified: true,
+    provider: 'email',
+    donationsCount: 5,
+    totalDonated: 1200
+  },
+  {
+    id: '2',
+    name: 'Regular User',
+    email: 'user@example.com',
+    role: 'user',
+    avatar: '/placeholder.svg',
+    emailVerified: true,
+    provider: 'email',
+    donationsCount: 3,
+    totalDonated: 450
+  },
+  {
+    id: '3',
+    name: 'John Doe',
+    email: 'john@example.com',
+    role: 'user',
+    avatar: '/placeholder.svg',
+    emailVerified: false,
+    provider: 'email',
+    donationsCount: 1,
+    totalDonated: 100
+  },
+  {
+    id: '4',
+    name: 'Jane Smith',
+    email: 'jane@example.com',
+    role: 'user',
+    avatar: '/placeholder.svg',
+    emailVerified: true,
+    provider: 'google',
+    donationsCount: 2,
+    totalDonated: 300
+  },
+];
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
 export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [campaignData, setCampaignData] = useState<Campaign[]>(campaigns);
+  const [campaignData, setCampaignData] = useState<Campaign[]>(
+    campaigns.map(campaign => ({
+      ...campaign,
+      status: campaign.featured ? 'approved' : 'pending'
+    }))
+  );
   const [donationData, setDonationData] = useState<Donation[]>(donations);
+  const [userData, setUserData] = useState<User[]>(sampleUsers);
+  const [flaggedContent, setFlaggedContent] = useState<Array<{type: 'campaign' | 'donation', id: string, reason: string}>>([]);
 
   // Get featured campaigns
   const featuredCampaigns = campaignData.filter(campaign => campaign.featured);
@@ -42,6 +105,11 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Get campaigns created by a specific user
   const getUserCampaigns = (organizerId: string) => {
     return campaignData.filter(campaign => campaign.organizer === organizerId);
+  };
+
+  // Get campaigns by status
+  const getCampaignsByStatus = (status: 'pending' | 'approved' | 'rejected') => {
+    return campaignData.filter(campaign => campaign.status === status);
   };
 
   // Verify a transaction by its ID
@@ -98,6 +166,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       id: Math.random().toString(36).substring(2, 9),
       createdAt: new Date().toISOString(),
       raised: 0,
+      status: 'pending' // All new campaigns start as pending
     };
     
     setCampaignData(prev => [...prev, newCampaign]);
@@ -127,6 +196,18 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
     
     return updatedCampaign;
+  };
+
+  // Update campaign approval status
+  const updateCampaignStatus = async (id: string, status: 'pending' | 'approved' | 'rejected') => {
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    setCampaignData(prev => 
+      prev.map(campaign => 
+        campaign.id === id ? { ...campaign, status } : campaign
+      )
+    );
   };
 
   // Delete a campaign
@@ -178,12 +259,96 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  // Flag content for moderation
+  const flagContent = async (type: 'campaign' | 'donation', id: string, reason: string) => {
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    setFlaggedContent(prev => [...prev, { type, id, reason }]);
+  };
+
+  // Get all flagged content
+  const getFlaggedContent = () => {
+    return flaggedContent;
+  };
+
+  // Update user role
+  const updateUserRole = async (id: string, role: 'user' | 'admin') => {
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    setUserData(prev => 
+      prev.map(user => 
+        user.id === id ? { ...user, role } : user
+      )
+    );
+  };
+
+  // Get all users
+  const getUsers = () => {
+    return userData;
+  };
+
+  // Get analytics data
+  const getAnalyticsData = () => {
+    // In a real app, this would fetch analytics from a database
+    // For demo purposes, we'll calculate some basic metrics
+    
+    const totalRaised = campaignData.reduce((total, campaign) => total + campaign.raised, 0);
+    const totalDonors = new Set(donationData.map(d => d.userId || d.email)).size;
+    const totalCampaigns = campaignData.length;
+    const approvedCampaigns = campaignData.filter(c => c.status === 'approved').length;
+    const pendingCampaigns = campaignData.filter(c => c.status === 'pending').length;
+    const rejectedCampaigns = campaignData.filter(c => c.status === 'rejected').length;
+    
+    // Calculate monthly donations for the past 6 months
+    const now = new Date();
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(now.getMonth() - 6);
+    
+    const monthlyDonations = Array(6).fill(0);
+    
+    donationData
+      .filter(d => d.status === 'confirmed' && new Date(d.createdAt) >= sixMonthsAgo)
+      .forEach(donation => {
+        const donationDate = new Date(donation.createdAt);
+        const monthIndex = (now.getMonth() - donationDate.getMonth() + 12) % 12;
+        if (monthIndex < 6) {
+          monthlyDonations[monthIndex] += donation.amount;
+        }
+      });
+    
+    // Get donation methods breakdown
+    const donationMethods = donationData
+      .filter(d => d.status === 'confirmed')
+      .reduce((methods, donation) => {
+        methods[donation.paymentMethod] = (methods[donation.paymentMethod] || 0) + donation.amount;
+        return methods;
+      }, {} as Record<string, number>);
+    
+    return {
+      totalRaised,
+      totalDonors,
+      totalCampaigns,
+      approvedCampaigns,
+      pendingCampaigns,
+      rejectedCampaigns,
+      monthlyDonations: monthlyDonations.reverse(),
+      donationMethods,
+      categoryCounts: campaignData.reduce((counts, campaign) => {
+        counts[campaign.category] = (counts[campaign.category] || 0) + 1;
+        return counts;
+      }, {} as Record<string, number>)
+    };
+  };
+
   return (
     <DataContext.Provider
       value={{
         campaigns: campaignData,
         donations: donationData,
         featuredCampaigns,
+        users: userData,
         getCampaign,
         getCampaignDonations,
         addDonation,
@@ -193,6 +358,13 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         updateCampaign,
         deleteCampaign,
         getUserCampaigns,
+        updateCampaignStatus,
+        flagContent,
+        updateUserRole,
+        getFlaggedContent,
+        getUsers,
+        getCampaignsByStatus,
+        getAnalyticsData
       }}
     >
       {children}
