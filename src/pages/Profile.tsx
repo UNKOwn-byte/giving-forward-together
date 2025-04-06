@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { User, Save, X, Check, Bell, Activity, Award, ChevronRight, BarChart3, Settings, Shield, Key } from 'lucide-react';
+import { User, Save, X, Check, Bell, Activity, Award, ChevronRight, BarChart3, Settings, Shield, Key, Smartphone, Mail, Bookmark } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import ProfilePictureUploader from '../components/profile/ProfilePictureUploader';
 import ActivityFeed from '../components/profile/ActivityFeed';
@@ -17,6 +17,9 @@ import UserAchievements from '../components/profile/UserAchievements';
 import UserAnalytics from '../components/profile/UserAnalytics';
 import { Switch } from "@/components/ui/switch";
 import { motion } from 'framer-motion';
+import TwoFactorAuth from '../components/profile/TwoFactorAuth';
+import ConnectedAccounts from '../components/profile/ConnectedAccounts';
+import EmailSubscriptions from '../components/profile/EmailSubscriptions';
 
 const DEFAULT_AVATAR = '/placeholder.svg';
 
@@ -37,6 +40,10 @@ const Profile: React.FC = () => {
     donationAlerts: true,
     campaignUpdates: true,
     marketingEmails: false,
+    commentReplies: true,
+    newFollowers: false,
+    campaignMilestones: true,
+    systemUpdates: true,
   });
 
   // Check if user is authenticated
@@ -225,7 +232,7 @@ const Profile: React.FC = () => {
             variants={itemVariants}
           >
             <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-              <TabsList className="mb-6 grid grid-cols-2 md:grid-cols-5">
+              <TabsList className="mb-6 grid grid-cols-3 md:grid-cols-6">
                 <TabsTrigger value="account" className="flex items-center gap-2">
                   <User size={16} />
                   <span className="hidden md:inline">Account</span>
@@ -245,6 +252,10 @@ const Profile: React.FC = () => {
                 <TabsTrigger value="security" className="flex items-center gap-2">
                   <Shield size={16} />
                   <span className="hidden md:inline">Security</span>
+                </TabsTrigger>
+                <TabsTrigger value="subscriptions" className="flex items-center gap-2">
+                  <Mail size={16} />
+                  <span className="hidden md:inline">Subscriptions</span>
                 </TabsTrigger>
               </TabsList>
               
@@ -308,6 +319,10 @@ const Profile: React.FC = () => {
                       </CardFooter>
                     )}
                   </Card>
+
+                  <div className="mt-6">
+                    <ConnectedAccounts />
+                  </div>
                 </motion.div>
               </TabsContent>
               
@@ -389,14 +404,56 @@ const Profile: React.FC = () => {
                       <Separator />
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="font-medium">Marketing Emails</p>
+                          <p className="font-medium">Comment Replies</p>
                           <p className="text-sm text-muted-foreground">
-                            Receive updates about new features and promotions
+                            Get notified when someone replies to your comments
                           </p>
                         </div>
                         <Switch 
-                          checked={notificationSettings.marketingEmails} 
-                          onCheckedChange={() => toggleNotificationSetting('marketingEmails')}
+                          checked={notificationSettings.commentReplies} 
+                          onCheckedChange={() => toggleNotificationSetting('commentReplies')}
+                          className="data-[state=checked]:bg-primary"
+                        />
+                      </div>
+                      <Separator />
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium">New Followers</p>
+                          <p className="text-sm text-muted-foreground">
+                            Get notified when someone follows your profile
+                          </p>
+                        </div>
+                        <Switch 
+                          checked={notificationSettings.newFollowers} 
+                          onCheckedChange={() => toggleNotificationSetting('newFollowers')}
+                          className="data-[state=checked]:bg-primary"
+                        />
+                      </div>
+                      <Separator />
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium">Campaign Milestones</p>
+                          <p className="text-sm text-muted-foreground">
+                            Get notified when your campaigns reach milestones
+                          </p>
+                        </div>
+                        <Switch 
+                          checked={notificationSettings.campaignMilestones} 
+                          onCheckedChange={() => toggleNotificationSetting('campaignMilestones')}
+                          className="data-[state=checked]:bg-primary"
+                        />
+                      </div>
+                      <Separator />
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium">System Updates</p>
+                          <p className="text-sm text-muted-foreground">
+                            Receive updates about platform features and changes
+                          </p>
+                        </div>
+                        <Switch 
+                          checked={notificationSettings.systemUpdates} 
+                          onCheckedChange={() => toggleNotificationSetting('systemUpdates')}
                           className="data-[state=checked]:bg-primary"
                         />
                       </div>
@@ -443,18 +500,12 @@ const Profile: React.FC = () => {
                       
                       <Separator className="my-4" />
                       
+                      <TwoFactorAuth />
+                      
+                      <Separator className="my-4" />
+                      
                       <div className="space-y-4">
                         <h3 className="text-lg font-medium">Advanced Security</h3>
-                        
-                        <div className="flex items-center justify-between p-4 border rounded-lg">
-                          <div>
-                            <h4 className="font-medium">Two-Factor Authentication</h4>
-                            <p className="text-sm text-muted-foreground">
-                              Add an extra layer of security to your account
-                            </p>
-                          </div>
-                          <Button variant="outline">Enable</Button>
-                        </div>
                         
                         <div className="flex items-center justify-between p-4 border rounded-lg">
                           <div>
@@ -487,6 +538,16 @@ const Profile: React.FC = () => {
                       }}>Update Password</Button>
                     </CardFooter>
                   </Card>
+                </motion.div>
+              </TabsContent>
+              
+              <TabsContent value="subscriptions">
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <EmailSubscriptions />
                 </motion.div>
               </TabsContent>
               

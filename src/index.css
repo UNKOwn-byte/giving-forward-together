@@ -165,10 +165,13 @@
 
 /* Reduced motion preferences */
 @layer utilities {
+  .no-animation {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+
   @media (prefers-reduced-motion: reduce) {
-    .no-animation {
-      @apply transition-none animate-none;
-    }
     *, *::before, *::after {
       transition-duration: 0.01ms !important;
       animation-duration: 0.01ms !important;
