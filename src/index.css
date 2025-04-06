@@ -35,36 +35,6 @@
 
     --radius: 0.5rem;
   }
-
-  .dark {
-    --background: 220 10% 10%;
-    --foreground: 210 40% 98%;
-
-    --card: 220 10% 15%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 220 10% 15%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 160 84% 39%;
-    --primary-foreground: 210 40% 98%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 201 94% 37%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 160 84% 39%;
-  }
 }
 
 @layer base {
@@ -112,7 +82,7 @@
 
   /* Skip to content link for keyboard navigation */
   .skip-link {
-    @apply absolute left-[-9999px] z-50 bg-white dark:bg-gray-800 p-2 m-1 focus:left-0;
+    @apply absolute left-[-9999px] z-50 bg-white p-2 m-1 focus:left-0;
   }
 }
 
@@ -122,11 +92,11 @@
   }
   
   .donation-card {
-    @apply bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden;
+    @apply bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden;
   }
   
   .progress-bar {
-    @apply h-2 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden;
+    @apply h-2 rounded-full bg-gray-200 overflow-hidden;
   }
   
   .progress-bar-fill {
