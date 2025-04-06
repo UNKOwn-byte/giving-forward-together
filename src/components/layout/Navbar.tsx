@@ -11,33 +11,46 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Menu, User, LogOut, Settings } from 'lucide-react';
+import { Menu, User, LogOut } from 'lucide-react';
+import { ThemeToggle } from '@/components/theme/ThemeToggle';
+import { motion } from 'framer-motion';
 
 const Navbar: React.FC = () => {
   const { user, isAuthenticated, logout } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
-    <nav className="bg-white shadow-sm py-4 sticky top-0 z-50">
+    <motion.nav 
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="bg-white dark:bg-gray-900 shadow-sm py-4 sticky top-0 z-50"
+    >
       <div className="container mx-auto px-4 flex justify-between items-center">
         <Link to="/" className="flex items-center space-x-2">
-          <div className="w-10 h-10 rounded-full bg-brand-500 flex items-center justify-center">
+          <motion.div 
+            whileHover={{ scale: 1.1 }}
+            transition={{ type: 'spring', stiffness: 400 }}
+            className="w-10 h-10 rounded-full bg-brand-500 flex items-center justify-center"
+          >
             <span className="text-white font-bold text-xl">GF</span>
-          </div>
-          <span className="text-2xl font-bold text-brand-700">GivingForward</span>
+          </motion.div>
+          <span className="text-2xl font-bold text-brand-700 dark:text-brand-300">GivingForward</span>
         </Link>
 
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center space-x-6">
-          <Link to="/campaigns" className="text-gray-700 hover:text-brand-600 transition-colors">
+          <Link to="/campaigns" className="text-gray-700 dark:text-gray-300 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">
             Campaigns
           </Link>
-          <Link to="/how-it-works" className="text-gray-700 hover:text-brand-600 transition-colors">
+          <Link to="/how-it-works" className="text-gray-700 dark:text-gray-300 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">
             How It Works
           </Link>
-          <Link to="/about" className="text-gray-700 hover:text-brand-600 transition-colors">
+          <Link to="/about" className="text-gray-700 dark:text-gray-300 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">
             About Us
           </Link>
+          
+          <ThemeToggle />
           
           {isAuthenticated ? (
             <DropdownMenu>
@@ -90,7 +103,8 @@ const Navbar: React.FC = () => {
         </div>
 
         {/* Mobile Navigation */}
-        <div className="md:hidden">
+        <div className="md:hidden flex items-center space-x-2">
+          <ThemeToggle />
           <Button variant="ghost" size="icon" onClick={() => setIsMenuOpen(!isMenuOpen)}>
             <Menu className="h-6 w-6" />
           </Button>
@@ -99,25 +113,31 @@ const Navbar: React.FC = () => {
 
       {/* Mobile Menu */}
       {isMenuOpen && (
-        <div className="md:hidden bg-white px-4 pt-2 pb-4 shadow-md">
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          transition={{ duration: 0.3 }}
+          className="md:hidden bg-white dark:bg-gray-900 px-4 pt-2 pb-4 shadow-md"
+        >
           <div className="flex flex-col space-y-3">
             <Link 
               to="/campaigns" 
-              className="text-gray-700 hover:text-brand-600 transition-colors py-2"
+              className="text-gray-700 dark:text-gray-300 hover:text-brand-600 dark:hover:text-brand-400 transition-colors py-2"
               onClick={() => setIsMenuOpen(false)}
             >
               Campaigns
             </Link>
             <Link 
               to="/how-it-works" 
-              className="text-gray-700 hover:text-brand-600 transition-colors py-2"
+              className="text-gray-700 dark:text-gray-300 hover:text-brand-600 dark:hover:text-brand-400 transition-colors py-2"
               onClick={() => setIsMenuOpen(false)}
             >
               How It Works
             </Link>
             <Link 
               to="/about" 
-              className="text-gray-700 hover:text-brand-600 transition-colors py-2"
+              className="text-gray-700 dark:text-gray-300 hover:text-brand-600 dark:hover:text-brand-400 transition-colors py-2"
               onClick={() => setIsMenuOpen(false)}
             >
               About Us
@@ -127,14 +147,14 @@ const Navbar: React.FC = () => {
               <>
                 <Link 
                   to="/profile" 
-                  className="text-gray-700 hover:text-brand-600 transition-colors py-2"
+                  className="text-gray-700 dark:text-gray-300 hover:text-brand-600 dark:hover:text-brand-400 transition-colors py-2"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   Profile
                 </Link>
                 <Link 
                   to="/my-donations" 
-                  className="text-gray-700 hover:text-brand-600 transition-colors py-2"
+                  className="text-gray-700 dark:text-gray-300 hover:text-brand-600 dark:hover:text-brand-400 transition-colors py-2"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   My Donations
@@ -142,7 +162,7 @@ const Navbar: React.FC = () => {
                 {user?.role === 'admin' && (
                   <Link 
                     to="/admin" 
-                    className="text-gray-700 hover:text-brand-600 transition-colors py-2"
+                    className="text-gray-700 dark:text-gray-300 hover:text-brand-600 dark:hover:text-brand-400 transition-colors py-2"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     Admin Dashboard
@@ -153,7 +173,7 @@ const Navbar: React.FC = () => {
                     logout();
                     setIsMenuOpen(false);
                   }}
-                  className="text-gray-700 hover:text-brand-600 transition-colors py-2 text-left flex items-center"
+                  className="text-gray-700 dark:text-gray-300 hover:text-brand-600 dark:hover:text-brand-400 transition-colors py-2 text-left flex items-center"
                 >
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>Logout</span>
@@ -179,9 +199,9 @@ const Navbar: React.FC = () => {
               </div>
             )}
           </div>
-        </div>
+        </motion.div>
       )}
-    </nav>
+    </motion.nav>
   );
 };
 
